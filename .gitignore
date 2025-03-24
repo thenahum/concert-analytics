@@ -1,0 +1,12 @@
+# .gitignore
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.DS_STORE
+
+# Ignore all files in data/...
+data/*
+
+# ...but keep the folder and any .gitkeep file
+!data/.gitkeep
