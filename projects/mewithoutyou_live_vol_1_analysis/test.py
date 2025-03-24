@@ -22,6 +22,4 @@ pd.set_option("display.max_rows", 100)      # You can increase this if needed
 pd.set_option("display.width", None)        # Don't wrap lines
 pd.set_option("display.colheader_justify", "left")  # Align headers nicely
 
-print("Project root:", PROJECT_ROOT)
-print("Current working directory:", os.getcwd())
-print("sys.path:", sys.path[:3])
+print(setlist.head())

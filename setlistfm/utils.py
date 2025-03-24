@@ -75,7 +75,7 @@ def setlists_to_dataframe(setlists):
         venue_stateCode = sl.get("venue", {}).get("city", {}).get("stateCode")
         venue_lat = sl.get("venue", {}).get("city", {}).get("coords",{}).get("lat")
         venue_lon = sl.get("venue", {}).get("city", {}).get("coords",{}).get("long")
-        venue_countryCode = sl.get("venue", {}).get("country", {}).get("code")
+        venue_countryCode = sl.get("venue", {}).get("city", {}).get("country", {}).get("code")
         event_info = sl.get("info")
         event_url = sl.get("url")
 
