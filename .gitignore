@@ -4,6 +4,7 @@
 __pycache__/
 *.py[cod]
 .DS_STORE
+.cache
 
 # Ignore Jupyter notebook autosave checkpoints
 .ipynb_checkpoints/

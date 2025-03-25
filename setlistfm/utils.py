@@ -27,7 +27,7 @@ def _build_cache_filename(func_name, mbid, cache_mode="sample", name_hint=None):
     Build a filename based on function name, mbid, and whether it's sample/full.
     """
     safe_name = name_hint.replace(" ", "_").lower() if name_hint else "data"
-    filename = f"{func_name}_{safe_name}_{mbid}_{cache_mode}.json"
+    filename = f"setlistfm_{func_name}_{safe_name}_{mbid}_{cache_mode}.json"
     return filename
 
 def cached_json(fetch_func, mbid, *args, name_hint=None, force=False, cache_mode="sample", **kwargs):
