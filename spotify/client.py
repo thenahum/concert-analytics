@@ -33,8 +33,6 @@ def search_artist_uri(artist_name: str) -> str:
     return items[0]['uri']
 
 
-# print(search_artist_uri("mewithoutYou"))
-
 
 def get_artist_albums(artist_uri: str) -> list:
     """
@@ -53,8 +51,6 @@ def get_artist_albums(artist_uri: str) -> list:
         offset += limit
     return albums
 
-# print(get_artist_albums("spotify:artist:3D4qYDvoPn5cQxtBm4oseo"))
-
 
 def get_album_tracks(album_ids: list) -> list:
     """
@@ -71,30 +67,11 @@ def get_album_tracks(album_ids: list) -> list:
             items = result.get('items', [])
             if not items:
                 break
-            album_tracks.extend(items)
+
+            for track in items:
+                track["album_id"] = album_id
+                album_tracks.append(track)
+
             offset += limit
         tracks.extend(album_tracks)
     return tracks
-
-# print(get_album_tracks(["spotify:album:4bGIhBIGsziCakPziupVmQ"]))
-
-# def get_audio_features(track_ids: list) -> list:
-#     """
-#     Given a list of track IDs, return their audio features.
-#     """
-#     sp = get_spotify_client()
-#     features = []
-#     # Spotify allows up to 100 IDs per request
-#     for i in range(0, len(track_ids), 100):
-#         chunk = track_ids[i:i+100]
-#         response = sp.audio_features(tracks=chunk)
-#         features.extend(response)
-#     return features
-
-# sp = get_spotify_client()
-# # print(sp.track("6peFgO5Lm7aXNIpwL6sbYU"))
-# # print(sp.audio_features(tracks=["6peFgO5Lm7aXNIpwL6sbYU"]))
-# print(sp.audio_features(["3n3Ppam7vgaVa1iaRUc9Lp"]))
-
-
-# print(sp.audio_analysis("6peFgO5Lm7aXNIpwL6sbYU"))
