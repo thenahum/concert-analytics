@@ -1,0 +1,244 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Schema containing raw API-loaded tables"
+    tables:
+      - name: setlist_history
+        description: "Raw setlist data from setlist.fm loaded by Python"
+        columns:
+          - name: event_id
+            description: "Setlist.fm event ID"
+          - name: event_date
+            description: "Date of the show"
+
+      - name: artist_albums
+        description: "Raw album data from spotify loaded by python"
+        columns:
+          - name: album_id
+            description: "Spotify Album ID"
+          - name: album_type
+            description: "Spotify album type"
+
+      - name: artist_tracks
+        description: "Raw track data from spotify loaded by python"
+        columns:
+          - name: track_id
+            description: "Spotify Track ID"
+
+      - name: artist_albums_metadata
+        description: "Metadata on album from spotify loaded by python"
+
+      - name: artist_tracks_metadata
+        description: "Metadata on tracks from spotify loaded by python"
+
+models:
+  - name: stg_artist_tracks
+    description: ""
+    columns:
+      - name: track_id
+        data_type: text
+        description: ""
+
+      - name: track_url
+        data_type: text
+        description: ""
+
+      - name: track_uri
+        data_type: text
+        description: ""
+
+      - name: album_id
+        data_type: text
+        description: ""
+        tests:
+          - relationships:
+              to: ref('stg_artist_albums')
+              field: album_id
+
+      - name: track_disk_number
+        data_type: bigint
+        description: ""
+
+      - name: track_duration_seconds
+        data_type: bigint
+        description: ""
+
+      - name: track_name
+        data_type: text
+        description: ""
+
+      - name: track_number
+        data_type: bigint
+        description: ""
+
+  - name: stg_artist_albums
+    description: ""
+    columns:
+      - name: album_id
+        data_type: text
+        description: ""
+
+      - name: album_url
+        data_type: text
+        description: ""
+
+      - name: album_uri
+        data_type: text
+        description: ""
+
+      - name: album_type
+        data_type: text
+        description: ""
+
+      - name: album_name
+        data_type: text
+        description: ""
+
+      - name: album_total_tracks
+        data_type: integer
+        description: ""
+
+      - name: album_release_date_clean
+        data_type: date
+        description: ""
+
+      - name: album_image_url
+        data_type: text
+        description: ""
+
+  - name: stg_setlist_history
+    description: "Cleaned and structured setlist data from raw.setlist_history"
+    columns:
+      - name: event_set_song_id
+        tests:
+          - unique: {}
+          - not_null: {}
+
+      - name: event_id
+   
+      - name: event_date
+        data_type: date
+        description: ""
+
+      - name: event_info
+        data_type: text
+        description: ""
+
+      - name: event_url
+        data_type: text
+        description: ""
+
+      - name: event_tour_id
+        data_type: text
+        description: ""
+
+      - name: event_tour
+        data_type: text
+        description: ""
+
+      - name: venue_id
+        data_type: text
+        description: ""
+
+      - name: venue_name
+        data_type: text
+        description: ""
+
+      - name: venue_city
+        data_type: text
+        description: ""
+
+      - name: venue_state_code
+        data_type: text
+        description: ""
+
+      - name: venue_country_code
+        data_type: text
+        description: ""
+
+      - name: venue_latitude
+        data_type: double precision
+        description: ""
+
+      - name: venue_longitude
+        data_type: double precision
+        description: ""
+
+      - name: set_index
+        data_type: bigint
+        description: ""
+
+      - name: encore_index
+        data_type: integer
+        description: ""
+
+      - name: encore_flag
+        data_type: boolean
+        description: ""
+
+      - name: song_index
+        data_type: bigint
+        description: ""
+
+      - name: song_position_in_set_index
+        data_type: bigint
+        description: ""
+
+      - name: song_name
+        data_type: text
+        description: ""
+
+      - name: song_info
+        data_type: text
+        description: ""
+
+      - name: song_cover_flag
+        data_type: boolean
+        description: ""
+
+      - name: song_cover_artist_mbid
+        data_type: text
+        description: ""
+
+      - name: song_cover_artist_name
+        data_type: text
+        description: ""
+
+      - name: song_with_flag
+        data_type: boolean
+        description: ""
+
+      - name: song_with_artist_mbid
+        data_type: text
+        description: ""
+
+      - name: song_with_artist_name
+        data_type: text
+        description: ""
+
+  - name: stg_artist_albums_metadata
+    description: ""
+    columns:
+      - name: album_id
+        data_type: character varying
+        description: ""
+
+      - name: album_popularity
+        data_type: integer
+        description: ""
+
+  - name: stg_artist_tracks_metadata
+    description: ""
+    columns:
+      - name: track_id
+        data_type: character varying
+        description: ""
+
+      - name: track_popularity
+        data_type: integer
+        description: ""
+
+      - name: track_isrc
+        data_type: character varying
+        description: ""

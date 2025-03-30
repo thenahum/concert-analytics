@@ -239,7 +239,7 @@ def album_tracks_to_dataframe(album_tracks):
         album_id = tr.get("album_id")
         track_disk_number = tr.get("disc_number")
         track_duration_ms = tr.get("duration_ms")
-        track_name = tr.get("track_name")
+        track_name = tr.get("name")
         track_number = tr.get("track_number")
 
         rows.append({
@@ -342,10 +342,12 @@ def tracks_metadata_to_dataframe(tracks):
     for tr in tracks:
         track_id = tr.get("id")
         track_popularity = tr.get("popularity")
+        track_isrc = tr.get("external_ids",{}).get("isrc")
 
         rows.append({
             "track_id": track_id
             , "track_popularity": track_popularity
+            ,"track_isrc": track_isrc
         })
 
     return pd.DataFrame(rows)
