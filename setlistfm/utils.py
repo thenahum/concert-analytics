@@ -27,7 +27,7 @@ def _build_cache_filename(func_name, mbid, cache_mode="sample", name_hint=None):
     Build a filename based on function name, mbid, and whether it's sample/full.
     """
     safe_name = name_hint.replace(" ", "_").lower() if name_hint else "data"
-    filename = f"{func_name}_{safe_name}_{mbid}_{cache_mode}.json"
+    filename = f"setlistfm_{func_name}_{safe_name}_{mbid}_{cache_mode}.json"
     return filename
 
 def cached_json(fetch_func, mbid, *args, name_hint=None, force=False, cache_mode="sample", **kwargs):
@@ -70,12 +70,13 @@ def setlists_to_dataframe(setlists):
     for sl in setlists:
         event_date = sl.get("eventDate")
         event_id = sl.get("id")
+        tour_name = sl.get("tour",{}).get("name")
         venue = sl.get("venue", {}).get("name")
         venue_city = sl.get("venue", {}).get("city", {}).get("name")
         venue_stateCode = sl.get("venue", {}).get("city", {}).get("stateCode")
         venue_lat = sl.get("venue", {}).get("city", {}).get("coords",{}).get("lat")
         venue_lon = sl.get("venue", {}).get("city", {}).get("coords",{}).get("long")
-        venue_countryCode = sl.get("venue", {}).get("country", {}).get("code")
+        venue_countryCode = sl.get("venue", {}).get("city", {}).get("country", {}).get("code")
         event_info = sl.get("info")
         event_url = sl.get("url")
 
@@ -104,6 +105,7 @@ def setlists_to_dataframe(setlists):
                         , "event_id": event_id
                         , "event_info": event_info
                         , "event_url": event_url
+                        , "tour_name": tour_name
                         , "venue": venue
                         , "venue_city": venue_city
                         , "venue_state_code": venue_stateCode
