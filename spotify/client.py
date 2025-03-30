@@ -43,7 +43,7 @@ def get_artist_albums(artist_uri: str) -> list:
     limit = 50
     offset = 0
     while True:
-        results = sp.artist_albums(artist_uri, album_type='album', limit=limit, offset=offset)
+        results = sp.artist_albums(artist_uri, album_type='album,single', limit=limit, offset=offset)
         items = results.get('items', [])
         if not items:
             break
