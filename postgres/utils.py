@@ -5,11 +5,13 @@ logger = logging.getLogger(__name__)
 
 def sanitize_table_name(name: str) -> str:
     """
-    Sanitizes a string to be a valid SQL table name:
-    - lowercases
-    - replaces spaces with underscores
-    - removes invalid characters
+    Sanitizes a SQL table name with optional schema.
+    Preserves schema.table structure, but cleans each part.
     """
-    name = name.lower().replace(" ", "_")
-    name = re.sub(r"[^a-zA-Z0-9_]", "", name)
-    return name
+    if "." in name:
+        schema, table = name.split(".", 1)
+        schema = re.sub(r"[^a-zA-Z0-9_]", "", schema)
+        table = re.sub(r"[^a-zA-Z0-9_]", "", table)
+        return f"{schema}.{table}"
+    else:
+        return re.sub(r"[^a-zA-Z0-9_]", "", name)

@@ -70,6 +70,7 @@ def setlists_to_dataframe(setlists):
     for sl in setlists:
         event_date = sl.get("eventDate")
         event_id = sl.get("id")
+        tour_name = sl.get("tour",{}).get("name")
         venue = sl.get("venue", {}).get("name")
         venue_city = sl.get("venue", {}).get("city", {}).get("name")
         venue_stateCode = sl.get("venue", {}).get("city", {}).get("stateCode")
@@ -104,6 +105,7 @@ def setlists_to_dataframe(setlists):
                         , "event_id": event_id
                         , "event_info": event_info
                         , "event_url": event_url
+                        , "tour_name": tour_name
                         , "venue": venue
                         , "venue_city": venue_city
                         , "venue_state_code": venue_stateCode
