@@ -18,7 +18,7 @@ select
 	,cast(encore_flag as bool) as encore_flag
 	,row_number() over (partition by event_id order by song_index asc nulls last) as song_index
 	,row_number() OVER (PARTITION BY event_id, set_index ORDER BY song_index asc nulls last) AS song_position_in_set_index
-	,song as song_name
+	,nullif(song,'') as song_name
 	,song_info as song_info
 	,cast(song_cover_flag as bool) as song_cover_flag
 	,song_cover_artist_mbid as song_cover_artist_mbid

@@ -28,5 +28,8 @@ select
 	,song_with_flag
 	,song_with_artist_mbid
 	,song_with_artist_name  
+	,lag(event_set_song_id) over (partition by song_name order by event_date desc) as song_last_event_set_song_id	
+	,lag(event_id) over (partition by song_name order by event_date desc) as song_last_event_id
+	,lag(event_date) over (partition by song_name order by event_date desc) as song_last_event_date
 from 
 	{{ ref('stg_setlist_history') }}
