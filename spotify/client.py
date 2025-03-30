@@ -75,3 +75,33 @@ def get_album_tracks(album_ids: list) -> list:
             offset += limit
         tracks.extend(album_tracks)
     return tracks
+
+
+def get_tracks_metadata(track_ids: list) -> list:
+    """
+    Batch fetch full track objects (with popularity) for a list of track IDs.
+    """
+    sp = get_spotify_client()
+    detailed_tracks = []
+
+    for i in range(0, len(track_ids), 50):
+        batch = track_ids[i:i+50]
+        response = sp.tracks(batch)
+        detailed_tracks.extend(response.get("tracks", []))
+
+    return detailed_tracks
+
+
+def get_albums_metadata(album_ids: list) -> list:
+    """
+    Given a list of album IDs, return full album objects (including popularity).
+    """
+    sp = get_spotify_client()
+    detailed_albums = []
+
+    for i in range(0, len(album_ids), 20):  # API limit is 20 per request
+        batch = album_ids[i:i + 20]
+        result = sp.albums(batch)
+        detailed_albums.extend(result.get("albums", []))
+
+    return detailed_albums
