@@ -13,7 +13,7 @@ select
 	,venue_country_code as venue_country_code
 	,cast(nullif(venue_lat,0) as float) as venue_latitude
 	,cast(nullif(venue_lon,0) as float) as venue_longitude
-	,row_number() over (partition by event_id order by set_index asc nulls last) as set_index 
+	,dense_rank() over (partition by event_id order by set_index asc nulls last) as set_index 
 	,cast(encore_index as int) as encore_index
 	,cast(encore_flag as bool) as encore_flag
 	,row_number() over (partition by event_id order by song_index asc nulls last) as song_index
