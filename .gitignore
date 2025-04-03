@@ -16,3 +16,6 @@ data/*
 
 # ...but keep the folder and any .gitkeep file
 !data/.gitkeep
+
+*.svg
+*.png
