@@ -14,10 +14,13 @@ select
 	,cast(nullif(venue_lat,0) as float) as venue_latitude
 	,cast(nullif(venue_lon,0) as float) as venue_longitude
 	,dense_rank() over (partition by event_id order by set_index asc nulls last) as set_index 
+	,dense_rank() over (partition by event_id order by set_index desc nulls last) as set_index_reversed 
 	,cast(encore_index as int) as encore_index
 	,cast(encore_flag as bool) as encore_flag
-	,row_number() over (partition by event_id order by song_index asc nulls last) as song_index
+	,row_number() over (partition by event_id order by set_index asc, song_index asc nulls last) as song_index
+	,row_number() over (partition by event_id order by set_index desc, song_index desc nulls last) as song_index_reversed
 	,row_number() OVER (PARTITION BY event_id, set_index ORDER BY song_index asc nulls last) AS song_position_in_set_index
+	,row_number() OVER (PARTITION BY event_id, set_index ORDER BY song_index desc nulls last) AS song_position_in_set_index_reversed
 	,nullif(song,'') as song_name
 	,song_info as song_info
 	,cast(song_cover_flag as bool) as song_cover_flag

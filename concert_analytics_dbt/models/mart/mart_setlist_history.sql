@@ -16,10 +16,13 @@ select
 	,venue_latitude
 	,venue_longitude
 	,set_index
+	,set_index_reversed
 	,encore_index
 	,encore_flag
 	,song_index
+	,song_index_reversed
 	,song_position_in_set_index
+	,song_position_in_set_index_reversed
 	,song_name
 	,song_info
 	,song_cover_flag
