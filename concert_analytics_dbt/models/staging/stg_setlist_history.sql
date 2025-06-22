@@ -1,10 +1,11 @@
 select 
-	md5(event_id||set_index||song_index) as event_set_song_id
+	name_hint as artist_name_hint
+	,md5(name_hint||event_id||set_index||song_index) as event_set_song_id
 	,event_id as event_id
 	,TO_DATE(event_date, 'DD-MM-YYYY') as event_date 
 	,event_info as event_info
 	,event_url as event_url
-	,md5(tour_name) as event_tour_id
+	,md5(name_hint||tour_name) as event_tour_id
 	,tour_name as event_tour
 	,md5(venue||venue_city||venue_state_code||venue_country_code) as venue_id
 	,venue as venue_name

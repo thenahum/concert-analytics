@@ -156,7 +156,7 @@ def get_track_metadata_for_artist(spotifyuri, *args, name_hint=None, force=False
 
 
 
-def albums_to_dataframe(albums):
+def albums_to_dataframe(albums,name_hint):
     """
     Convert spotify web API data into a pandas DataFrame where each row is a song performance.
 
@@ -181,7 +181,8 @@ def albums_to_dataframe(albums):
         album_image_url = al.get("images", [{}])[0].get("url")
 
         rows.append({
-            "album_id": album_id
+            "name_hint": name_hint
+            , "album_id": album_id
             , "album_url": album_url
             , "album_uri": album_uri
             , "album_type": album_type
@@ -217,10 +218,10 @@ def albums_dataframe(spotifyuri, force_refresh=False, name_hint=None):
         ,force=force_refresh
     )
 
-    return albums_to_dataframe(album_data)
+    return albums_to_dataframe(album_data, name_hint)
 
 
-def album_tracks_to_dataframe(album_tracks):
+def album_tracks_to_dataframe(album_tracks,name_hint):
     """
     Convert spotify web API data into a pandas DataFrame where each row is a song performance.
 
@@ -243,7 +244,8 @@ def album_tracks_to_dataframe(album_tracks):
         track_number = tr.get("track_number")
 
         rows.append({
-            "track_id": track_id
+            "name_hint": name_hint
+            , "track_id": track_id
             , "track_url": track_url
             , "track_uri": track_uri
             , "album_id": album_id
@@ -276,11 +278,11 @@ def album_tracks_dataframe(spotifyuri, force_refresh=False, name_hint=None):
         ,force=force_refresh
     )
 
-    return album_tracks_to_dataframe(album_tracks_data)
+    return album_tracks_to_dataframe(album_tracks_data,name_hint)
 
 
 
-def albums_metadata_to_dataframe(albums):
+def albums_metadata_to_dataframe(albums,name_hint):
     """
     Convert spotify web API data into a pandas DataFrame where each row is a song performance.
 
@@ -297,7 +299,8 @@ def albums_metadata_to_dataframe(albums):
         album_popularity = al.get("popularity")
 
         rows.append({
-            "album_id": album_id
+            "name_hint": name_hint
+            ,"album_id": album_id
             , "album_popularity": album_popularity
         })
 
@@ -324,10 +327,10 @@ def albums_metadata_dataframe(spotifyuri, force_refresh=False, name_hint=None):
         ,force=force_refresh
     )
 
-    return albums_metadata_to_dataframe(album_metadata)
+    return albums_metadata_to_dataframe(album_metadata,name_hint)
 
 
-def tracks_metadata_to_dataframe(tracks):
+def tracks_metadata_to_dataframe(tracks, name_hint):
     """
     Convert spotify web API data into a pandas DataFrame where each row is a song performance.
 
@@ -345,7 +348,8 @@ def tracks_metadata_to_dataframe(tracks):
         track_isrc = tr.get("external_ids",{}).get("isrc")
 
         rows.append({
-            "track_id": track_id
+            "name_hint": name_hint
+            ,"track_id": track_id
             , "track_popularity": track_popularity
             ,"track_isrc": track_isrc
         })
@@ -373,4 +377,4 @@ def tracks_metadata_dataframe(spotifyuri, force_refresh=False, name_hint=None):
         ,force=force_refresh
     )
 
-    return tracks_metadata_to_dataframe(tracks_metadata)
+    return tracks_metadata_to_dataframe(tracks_metadata,name_hint)

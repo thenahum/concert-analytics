@@ -55,7 +55,7 @@ def cached_json(fetch_func, mbid, *args, name_hint=None, force=False, cache_mode
     save_json(data, filename)
     return data
 
-def setlists_to_dataframe(setlists):
+def setlists_to_dataframe(setlists, name_hint):
     """
     Convert setlist.fm data into a pandas DataFrame where each row is a song performance.
 
@@ -101,7 +101,8 @@ def setlists_to_dataframe(setlists):
                     song_withArtistMbid = song.get("with",{}).get("mbid")
 
                     rows.append({
-                        "event_date": event_date
+                        "name_hint": name_hint
+                        ,"event_date": event_date
                         , "event_id": event_id
                         , "event_info": event_info
                         , "event_url": event_url
@@ -154,4 +155,4 @@ def setlist_dataframe(mbid, sample=True, force_refresh=False, name_hint=None, sa
         cache_mode=cache_mode
     )
 
-    return setlists_to_dataframe(setlists)
+    return setlists_to_dataframe(setlists,name_hint)

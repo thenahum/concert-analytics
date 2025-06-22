@@ -1,5 +1,6 @@
 select 
-	track_id as track_id
+	name_hint as artist_name_hint
+	,track_id as track_id
 	,track_url as track_url
 	,track_uri as track_uri
 	,album_id as album_id

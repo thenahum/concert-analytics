@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def load_dataframe(df: pd.DataFrame, table_name: str, if_exists: str = "replace"):
+def load_dataframe(table_name: str, df: pd.DataFrame, if_exists: str = "replace"):
     """
     Load a pandas DataFrame into the 'raw' schema of your Postgres warehouse.
 
@@ -40,10 +40,14 @@ def refresh_raw_table(table_name: str, df: pd.DataFrame):
 
 def upsert_raw_table(table_name: str, df: pd.DataFrame):
     """
-    Upserts data into raw schema. If table exists, DELETE + INSERT.
+    Upserts data into raw schema. If table exists, DELETE only rows with matching `name_hint` values.
     If not, creates it. Handles errors gracefully.
     """
     engine = get_engine()
+
+    if "name_hint" not in df.columns:
+        logger.error("FAIL! `name_hint` column is required for upsert logic.")
+        return
 
     try:
         with engine.begin() as conn:
@@ -51,8 +55,17 @@ def upsert_raw_table(table_name: str, df: pd.DataFrame):
             tables = inspector.get_table_names(schema="raw")
 
             if table_name in tables:
-                logger.info(f"🔁 Table raw.{table_name} exists — refreshing contents.")
-                conn.execute(text(f"DELETE FROM raw.{table_name}"))
+                logger.info(f"🔁 Table raw.{table_name} exists — deleting matching rows.")
+                
+                # Get unique name_hint values and build a bind parameter list
+                name_hints = df["name_hint"].dropna().unique().tolist()
+                if not name_hints:
+                    logger.warning("No name_hint values to match on; skipping delete step.")
+                else:
+                    placeholders = ", ".join([f":val{i}" for i in range(len(name_hints))])
+                    delete_query = text(f"DELETE FROM raw.{table_name} WHERE name_hint IN ({placeholders})")
+                    conn.execute(delete_query, {f"val{i}": v for i, v in enumerate(name_hints)})
+
                 df.to_sql(table_name, con=conn, schema="raw", if_exists="append", index=False)
             else:
                 logger.info(f"🆕 Table raw.{table_name} does not exist — creating and loading.")

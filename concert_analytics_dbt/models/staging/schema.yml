@@ -32,6 +32,10 @@ sources:
       - name: artist_tracks_metadata
         description: "Metadata on tracks from spotify loaded by python"
 
+      - name: artist_name_hint
+        data_type: character varying
+        description: "Name hint used to pull data, will help join different bands datasets"
+
 models:
   - name: stg_artist_tracks
     description: ""
@@ -72,6 +76,10 @@ models:
         data_type: bigint
         description: ""
 
+      - name: artist_name_hint
+        data_type: character varying
+        description: "Name hint used to pull data, will help join different bands datasets"
+
   - name: stg_artist_albums
     description: ""
     columns:
@@ -106,6 +114,10 @@ models:
       - name: album_image_url
         data_type: text
         description: ""
+
+      - name: artist_name_hint
+        data_type: character varying
+        description: "Name hint used to pull data, will help join different bands datasets"
 
   - name: stg_setlist_history
     description: "Cleaned and structured setlist data from raw.setlist_history"
@@ -217,6 +229,10 @@ models:
         data_type: text
         description: ""
 
+      - name: artist_name_hint
+        data_type: character varying
+        description: "Name hint used to pull data, will help join different bands datasets"
+
   - name: stg_artist_albums_metadata
     description: ""
     columns:
@@ -227,6 +243,10 @@ models:
       - name: album_popularity
         data_type: integer
         description: ""
+
+      - name: artist_name_hint
+        data_type: character varying
+        description: "Name hint used to pull data, will help join different bands datasets"
 
   - name: stg_artist_tracks_metadata
     description: ""
@@ -242,3 +262,7 @@ models:
       - name: track_isrc
         data_type: character varying
         description: ""
+
+      - name: artist_name_hint
+        data_type: character varying
+        description: "Name hint used to pull data, will help join different bands datasets"

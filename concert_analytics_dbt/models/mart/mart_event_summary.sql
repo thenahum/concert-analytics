@@ -1,6 +1,7 @@
 with event_summary as (
 	select 
-		event_id
+		artist_name_hint
+		,event_id
 		,event_date
 		,event_info
 		,event_url
@@ -23,12 +24,12 @@ with event_summary as (
 			when encore_flag = false then event_set_song_id 
 			end 
 			) as event_total_non_encore_songs
-		,lag(event_date) over (order by event_date asc) as event_last_date	
-		,lag(event_tour_id) over (order by event_date asc) as event_last_tour_id
+		,lag(event_date) over (partition by artist_name_hint order by event_date asc) as event_last_date	
+		,lag(event_tour_id) over (partition by artist_name_hint order by event_date asc) as event_last_tour_id
 	from 
 		{{ ref('stg_setlist_history') }}
 	group by 
-		1,2,3,4,5,6,7,8,9,10,11,12,13
+		1,2,3,4,5,6,7,8,9,10,11,12,13,14
 ), new_tour_flag as (
 	select 
 		*
@@ -47,7 +48,8 @@ with event_summary as (
 		new_tour_flag
 )
 select 
-	event_id
+	artist_name_hint
+	,event_id
 	,event_date
 	,event_info
 	,event_url
@@ -66,6 +68,6 @@ select
 	,event_total_non_encore_songs
 	,event_last_date
 	,event_last_tour_id
-	,md5('mewithoutyou'||tour_psuedo_counter) as event_tour_pseudo_id
+	,md5(artist_name_hint||tour_psuedo_counter) as event_tour_pseudo_id
 from 
 	tour_psuedo_counter
