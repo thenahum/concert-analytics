@@ -1,5 +1,6 @@
 select 
-	album_id as album_id
+	name_hint as artist_name_hint
+	,album_id as album_id
 	,album_url as album_url
 	,album_uri as album_uri
 	,album_type as album_type

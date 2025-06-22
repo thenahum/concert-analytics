@@ -1,5 +1,6 @@
 select 
-	md5(event_id||set_index||song_index) as event_set_song_id
+	name_hint as artist_name_hint
+	,md5(event_id||set_index||song_index) as event_set_song_id
 	,event_id as event_id
 	,TO_DATE(event_date, 'DD-MM-YYYY') as event_date 
 	,event_info as event_info

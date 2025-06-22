@@ -1,6 +1,7 @@
 with album_track_joined as (
 	select 
-		al.album_id as album_id
+		al.artist_name_hint as artist_name_hint
+		,al.album_id as album_id
 		,al.album_url as album_url
 		,al.album_uri as album_uri
 		,al.album_type as album_type
@@ -29,7 +30,8 @@ with album_track_joined as (
 )
 , album_track_ranked as (
 	select 
- 		album_id
+ 		artist_name_hint
+ 		,album_id
 		,album_url
 		,album_uri
 		,album_type
@@ -49,7 +51,8 @@ with album_track_joined as (
 		,track_irsc
  		,ROW_NUMBER() OVER (
 			PARTITION BY 
-				LOWER(track_name)
+				artist_name_hint
+				,LOWER(track_name)
 			ORDER BY
 		    	CASE 
 			    	WHEN album_type = 'album' THEN 0 
@@ -61,7 +64,8 @@ with album_track_joined as (
 	 	album_track_joined
 )
 select 
-	album_id
+	artist_name_hint
+	,album_id
 	,album_url
 	,album_uri
 	,album_type
