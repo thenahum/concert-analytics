@@ -84,6 +84,12 @@ def test(c: Context):
     run_dbt_command(c, "test")
 
 @task(pre=[tunnel])
+def deps(c: Context):
+    log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
+    """Run dbt deps"""
+    run_dbt_command(c, "deps")
+
+@task(pre=[tunnel])
 def dbt(c: Context, command="run"):
     log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
     """Run arbitrary dbt command (e.g. --select my_model)"""

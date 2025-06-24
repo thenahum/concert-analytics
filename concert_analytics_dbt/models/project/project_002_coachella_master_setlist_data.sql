@@ -23,6 +23,31 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
     group by 
         1
 )
+, glider_cte as (
+    select 
+        mat.* 
+    from 
+        {{ ref('mart_all_tracks') }} as mat
+    where true 
+        and artist_name_hint = 'JapaneseBreakfast'
+        and lower(track_name) like '%glider%'
+) 
+, glider_similarity_cte as (
+    select 
+        msh.artist_name_hint
+        , msh.song_name
+        , 'Glider' as track_name
+        , msh.event_set_song_id
+        , g_cte.track_id
+        , 1 as similarity_score
+        , 1 as similarity_rank
+    from 
+        {{ ref('mart_setlist_history') }} as msh 
+        CROSS JOIN glider_cte as g_cte
+    where TRUE
+        and lower(msh.song_name) like '%glider%'
+        and msh.artist_name_hint = 'JapaneseBreakfast'
+)
 , setlisth_history_coachella_flags_cte as (
     select 
         msh.artist_name_hint
@@ -87,6 +112,11 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
         {{ ref('mart_track_setlist_similarity_scores') }} as mtsss
     where TRUE
         and mtsss.similarity_rank = 1
+    union 
+    select 
+        *
+    from 
+        glider_similarity_cte as gs_cte
 )
 select
     cs_cte.*

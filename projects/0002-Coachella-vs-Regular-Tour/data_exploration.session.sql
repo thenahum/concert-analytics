@@ -1,85 +1,57 @@
-with coachella_dates(artist_name_hint,coachella_weekend,coachella_start_date,coachella_end_date) as (
-    values 
-        ('Turnstile','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
-        ,('BillieEilish','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
-        ,('JapaneseBreakfast','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
-        ,('TameImpala','Weekend 1','2019-04-12'::Date, '2019-04-14'::date)
-        ,('Turnstile','Weekend 2','2022-04-23'::Date, '2022-04-25'::date)
-        ,('BillieEilish','Weekend 2','2022-04-23'::Date, '2022-04-25'::date)
-        ,('JapaneseBreakfast','Weekend 2','2022-04-23'::Date, '2022-04-25'::date)
-        ,('TameImpala','Weekend 2','2019-04-19'::date, '2019-04-21'::Date)
-)
-, analysis_dates as (
-    select 
-        artist_name_hint
-        ,min(coachella_start_date) as first_coachella_date
-        ,max(coachella_end_date) as last_coachella_date
-        ,min(coachella_start_date) - 365 as reporting_start_date
-        ,max(coachella_end_date) + 365 as reporting_end_date
-    from 
-        coachella_dates
-    group by 
-        1
-)
-, coachella_sets_cte as (
-    select 
-        msh.artist_name_hint	
-        ,msh.event_set_song_id	
-        ,msh.event_id	
-        ,msh.event_date	
-        ,msh.event_info	
-        ,msh.event_url	
-        ,msh.event_tour_id	
-        ,msh.event_tour	
-        ,msh.venue_id	
-        ,msh.venue_name	
-        ,case when cd.artist_name_hint is not null then TRUE else FALSE end as is_coachella
-        ,cd.coachella_weekend as coachella_weekend
-        ,case when ad.first_coachella_date > msh.event_date then  ad.first_coachella_date - msh.event_date end as days_before_first_coachella_date
-        ,case when ad.last_coachella_date < msh.event_date then msh.event_date - ad.last_coachella_date end as days_after_last_coachella_date
-    from 
-        analytics_mart.mart_setlist_history as msh
-        join analysis_dates as ad 
-            on msh.artist_name_hint = ad.artist_name_hint
-            and msh.event_date between ad.reporting_start_date and ad.reporting_end_date 
-        left join coachella_dates as cd 
-            on msh.artist_name_hint = cd.artist_name_hint
-            and msh.event_date between cd.coachella_start_date and cd.coachella_end_date
-    where TRUE
-)
-, track_link_filtered as (
-    select 
-        *
-    from 
-        analytics_mart.mart_track_setlist_similarity_scores as mtsss
-    where 
-        mtsss.similarity_rank = 1
-)
-select
-    cs_cte.*
-    ,tr.album_id	
-    ,tr.album_url	
-    ,tr.album_uri	
-    ,tr.album_type	
-    ,tr.album_name	
-    ,tr.album_total_tracks	
-    ,tr.album_release_date	
-    ,tr.album_image_url	
-    ,tr.album_popularity	
-    ,tr.track_id	
-    ,tr.track_url	
-	,es.event_total_songs
-	,es.event_total_sets
-	,es.event_total_encore_songs
-	,es.event_total_non_encore_songs
+select 
+    track_name
+    ,count(1) as total_times_played
+    ,max(case when is_coachella then 1 else 0 end) as played_in_coachella
 from 
-    coachella_sets_cte as cs_cte
-    left join track_link_filtered as tl_cte
-        on cs_cte.event_set_song_id = tl_cte.event_set_song_id
-    left join analytics_mart.mart_all_tracks as tr
-		on tl_cte.track_id = tr.track_id
-    left join analytics_mart.mart_event_summary as es
-    	on cs_cte.event_id = es.event_id
-limit
-    100
+    analytics_project.project_002_coachella_master_setlist_data
+where 
+    artist_name_hint = 'TameImpala'
+group by 
+    1
+order by 
+    2 desc 
 ;
+
+
+
+select 
+    *
+from 
+    analytics_project.project_002_coachella_master_setlist_data
+where 
+    track_name is null 
+limit 100;
+
+with glider_cte as (
+    select 
+        mat.* 
+    from 
+        analytics_mart.mart_all_tracks as mat
+    where true 
+        and artist_name_hint = 'JapaneseBreakfast'
+        and lower(track_name) like '%glider%'
+)
+select 
+    msh.artist_name_hint
+    , msh.song_name
+    , 'Glider' as track_name
+    , msh.event_set_song_id
+    , g_cte.track_id
+    , 1 as similarity_score
+    , 1 as similarity_rank
+from 
+    analytics_mart.mart_setlist_history as msh 
+    CROSS JOIN glider_cte as g_cte
+where TRUE
+    and lower(msh.song_name) like '%glider%'
+    and msh.artist_name_hint = 'JapaneseBreakfast'
+limit 
+    100;
+
+select * 
+from 
+    analytics_mart.mart_all_tracks
+where true 
+    and artist_name_hint = 'JapaneseBreakfast'
+    and lower(track_name) like '%glider%'
+limit 100
