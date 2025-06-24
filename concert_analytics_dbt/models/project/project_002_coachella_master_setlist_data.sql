@@ -19,7 +19,7 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
         ,min(coachella_start_date) - 365 as reporting_start_date
         ,max(coachella_end_date) + 365 as reporting_end_date
     from 
-        coachella_dates
+        coachella_dates_cte
     group by 
         1
 )
@@ -35,18 +35,18 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
         ,msh.event_tour	
         ,msh.venue_id	
         ,msh.venue_name	
-        ,case when cd.artist_name_hint is not null then TRUE else FALSE end as is_coachella
-        ,cd.coachella_weekend as coachella_weekend
-        ,case when ad.first_coachella_date > msh.event_date then  ad.first_coachella_date - msh.event_date end as days_before_first_coachella_date
-        ,case when ad.last_coachella_date < msh.event_date then msh.event_date - ad.last_coachella_date end as days_after_last_coachella_date
+        ,case when cd_cte.artist_name_hint is not null then TRUE else FALSE end as is_coachella
+        ,cd_cte.coachella_weekend as coachella_weekend
+        ,case when ad_cte.first_coachella_date > msh.event_date then  ad_cte.first_coachella_date - msh.event_date end as days_before_first_coachella_date
+        ,case when ad_cte.last_coachella_date < msh.event_date then msh.event_date - ad_cte.last_coachella_date end as days_after_last_coachella_date
     from 
         {{ ref('mart_setlist_history') }} as msh
         join analysis_dates_cte as ad_cte
-            on msh.artist_name_hint = ad.artist_name_hint
-            and msh.event_date between ad.reporting_start_date and ad.reporting_end_date 
+            on msh.artist_name_hint = ad_cte.artist_name_hint
+            and msh.event_date between ad_cte.reporting_start_date and ad_cte.reporting_end_date 
         left join coachella_dates_cte as cd_cte
-            on msh.artist_name_hint = cd.artist_name_hint
-            and msh.event_date between cd.coachella_start_date and cd.coachella_end_date
+            on msh.artist_name_hint = cd_cte.artist_name_hint
+            and msh.event_date between cd_cte.coachella_start_date and cd_cte.coachella_end_date
     where TRUE
 )
 , track_link_filtered_cte as (

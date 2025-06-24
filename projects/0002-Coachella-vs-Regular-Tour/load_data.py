@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)  # DEBUG < INFO < WARNING < ERROR < CRIT
 fetch_config = {
     'setlistfm_force_refresh': False
     ,'spotify_force_refresh': False
-    ,'sample':True
+    ,'sample': False
 }
 
 tame_impala_fetch = {
