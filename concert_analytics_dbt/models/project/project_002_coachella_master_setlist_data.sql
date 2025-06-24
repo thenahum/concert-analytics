@@ -1,4 +1,6 @@
-with coachella_dates(artist_name_hint,coachella_weekend,coachella_start_date,coachella_end_date) as (
+
+
+with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date,coachella_end_date) as (
     values 
         ('Turnstile','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
         ,('BillieEilish','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
@@ -9,7 +11,7 @@ with coachella_dates(artist_name_hint,coachella_weekend,coachella_start_date,coa
         ,('JapaneseBreakfast','Weekend 2','2022-04-23'::Date, '2022-04-25'::date)
         ,('TameImpala','Weekend 2','2019-04-19'::date, '2019-04-21'::Date)
 )
-, analysis_dates as (
+, analysis_dates_cte as (
     select 
         artist_name_hint
         ,min(coachella_start_date) as first_coachella_date
@@ -21,7 +23,7 @@ with coachella_dates(artist_name_hint,coachella_weekend,coachella_start_date,coa
     group by 
         1
 )
-, coachella_sets_cte as (
+, setlisth_history_coachella_flags_cte as (
     select 
         msh.artist_name_hint	
         ,msh.event_set_song_id	
@@ -38,20 +40,20 @@ with coachella_dates(artist_name_hint,coachella_weekend,coachella_start_date,coa
         ,case when ad.first_coachella_date > msh.event_date then  ad.first_coachella_date - msh.event_date end as days_before_first_coachella_date
         ,case when ad.last_coachella_date < msh.event_date then msh.event_date - ad.last_coachella_date end as days_after_last_coachella_date
     from 
-        analytics_mart.mart_setlist_history as msh
-        join analysis_dates as ad 
+        {{ ref('mart_setlist_history') }} as msh
+        join analysis_dates_cte as ad_cte
             on msh.artist_name_hint = ad.artist_name_hint
             and msh.event_date between ad.reporting_start_date and ad.reporting_end_date 
-        left join coachella_dates as cd 
+        left join coachella_dates_cte as cd_cte
             on msh.artist_name_hint = cd.artist_name_hint
             and msh.event_date between cd.coachella_start_date and cd.coachella_end_date
     where TRUE
 )
-, track_link_filtered as (
+, track_link_filtered_cte as (
     select 
         *
     from 
-        analytics_mart.mart_track_setlist_similarity_scores as mtsss
+        {{ ref('mart_track_setlist_similarity_scores') }} as mtsss
     where 
         mtsss.similarity_rank = 1
 )
@@ -73,13 +75,10 @@ select
 	,es.event_total_encore_songs
 	,es.event_total_non_encore_songs
 from 
-    coachella_sets_cte as cs_cte
-    left join track_link_filtered as tl_cte
+    setlisth_history_coachella_flags_cte as cs_cte
+    left join track_link_filtered_cte as tl_cte
         on cs_cte.event_set_song_id = tl_cte.event_set_song_id
-    left join analytics_mart.mart_all_tracks as tr
+    left join {{ ref('mart_all_tracks') }} as tr
 		on tl_cte.track_id = tr.track_id
-    left join analytics_mart.mart_event_summary as es
+    left join {{ ref('mart_event_summary') }} as es
     	on cs_cte.event_id = es.event_id
-limit
-    100
-;
