@@ -142,6 +142,7 @@ select
 	, es.event_total_sets
 	, es.event_total_encore_songs
 	, es.event_total_non_encore_songs
+    , coalesce(tr.track_name,cs_cte.song_name,'Unknown') as track_song_name
 from 
     setlisth_history_coachella_flags_cte as cs_cte
     left join track_link_filtered_cte as tl_cte
