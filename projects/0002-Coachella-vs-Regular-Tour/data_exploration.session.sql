@@ -5,7 +5,7 @@ select
 from 
     analytics_project.project_002_coachella_master_setlist_data
 where 
-    artist_name_hint = 'TameImpala'
+    artist_name_hint = 'Turnstile'
 group by 
     1
 order by 
@@ -15,12 +15,15 @@ order by
 
 
 select 
-    *
+    event_date
+    ,count(1)
 from 
     analytics_project.project_002_coachella_master_setlist_data
 where 
-    track_name is null 
-limit 100;
+    artist_name_hint = 'JapaneseBreakfast'
+    -- and event_date = '2021-06-10'
+group by 1
+limit 2000;
 
 with glider_cte as (
     select 
@@ -52,6 +55,6 @@ select *
 from 
     analytics_mart.mart_all_tracks
 where true 
-    and artist_name_hint = 'JapaneseBreakfast'
-    and lower(track_name) like '%glider%'
+    and artist_name_hint = 'TameImpala'
+    and lower(track_name) like '%led%'
 limit 100
