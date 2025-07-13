@@ -95,6 +95,11 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
         , case 
             when ad_cte.last_coachella_date < msh.event_date then msh.event_date - ad_cte.last_coachella_date 
         end as days_after_last_coachella_date
+        , case 
+            when cd_cte.artist_name_hint is not null then 'Coachella'
+            when ad_cte.first_coachella_date > msh.event_date then 'Before Coachella'
+            when ad_cte.last_coachella_date < msh.event_date then 'After Coachella'
+        end as coachella_analytics_period
     from 
         {{ ref('mart_setlist_history') }} as msh
         join analysis_dates_cte as ad_cte
