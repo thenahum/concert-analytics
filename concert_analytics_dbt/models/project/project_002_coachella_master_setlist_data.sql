@@ -5,11 +5,11 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
         ('Turnstile','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
         , ('BillieEilish','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
         , ('JapaneseBreakfast','Weekend 1','2022-04-16'::date,'2022-04-18'::date)
-        , ('TameImpala','Weekend 1','2019-04-12'::Date, '2019-04-14'::date)
+        -- , ('TameImpala','Weekend 1','2019-04-12'::Date, '2019-04-14'::date)
         , ('Turnstile','Weekend 2','2022-04-23'::Date, '2022-04-25'::date)
         , ('BillieEilish','Weekend 2','2022-04-23'::Date, '2022-04-25'::date)
         , ('JapaneseBreakfast','Weekend 2','2022-04-23'::Date, '2022-04-25'::date)
-        , ('TameImpala','Weekend 2','2019-04-19'::date, '2019-04-21'::Date)
+        -- , ('TameImpala','Weekend 2','2019-04-19'::date, '2019-04-21'::Date)
 )
 , analysis_dates_cte as (
     select 
@@ -125,6 +125,11 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
 )
 select
     cs_cte.*
+    , case
+        when cs_cte.artist_name_hint = 'BillieEilish' then 'Billie Eilish'
+        when cs_cte.artist_name_hint = 'JapaneseBreakfast' then 'Japanese Breakfast'
+        when cs_cte.artist_name_hint = 'Turnstile' then 'Turnstile'
+    end as artist_display_name
     , tr.album_id
     , tr.album_url
     , tr.album_uri

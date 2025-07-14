@@ -3,5 +3,6 @@ version: 1
 models:
   - name: project_002_coachella_master_setlist_data
     description: "Master setlist and track data for project 002 Coachella vs. Normal Tour"
-    tags: ["project_002"]
+    config:
+      tags: ["project_002"]
     
