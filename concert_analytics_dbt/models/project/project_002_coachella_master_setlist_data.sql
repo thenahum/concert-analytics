@@ -157,6 +157,7 @@ from
     setlisth_history_coachella_flags_cte as cs_cte
     left join track_link_filtered_cte as tl_cte
         on cs_cte.event_set_song_id = tl_cte.event_set_song_id
+        and cs_cte.song_cover_flag = FALSE 
     left join {{ ref('mart_all_tracks') }} as tr
 		on tl_cte.track_id = tr.track_id
     left join {{ ref('mart_event_summary') }} as es
