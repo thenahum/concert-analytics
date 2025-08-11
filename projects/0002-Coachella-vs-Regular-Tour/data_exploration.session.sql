@@ -5,14 +5,44 @@ select
 from 
     analytics_project.project_002_coachella_master_setlist_data
 where 
-    artist_name_hint = 'Turnstile'
+    artist_name_hint = 'BillieEilish'
+    and is_coachella = True
 group by 
     1
 order by 
     2 desc 
 ;
 
+SELECT
+    artist_name_hint
+    ,coachella_analytics_period
+    ,event_id
+    ,avg(track_popularity)
+from 
+    analytics_project.project_002_coachella_master_setlist_data
+where 
+    artist_name_hint in ('BillieEilish','JapaneseBreakfast','Turnstile')
+group by 
+    1,2,3
+order by 
+    1,2,4
+;
 
+
+select 
+    song_name
+    ,song_cover_flag
+    ,song_cover_artist_mbid
+    ,song_cover_artist_name
+from 
+    analytics_project.project_002_coachella_master_setlist_data
+where TRUE 
+    -- artist_name_hint = 'BillieEilish'
+    -- and is_coachella = True
+    and song_cover_flag = True
+group by 
+    1,2,3,4
+;
 
 select 
     event_date
