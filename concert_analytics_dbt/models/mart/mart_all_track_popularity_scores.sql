@@ -7,7 +7,7 @@ with all_tracks_summary_stats_cte as (
         , percentile_disc(0.5) WITHIN GROUP (ORDER BY track_popularity) as artist_median_track_popularity
         , stddev_samp(track_popularity::float) as artist_stddev_track_popularity
     from
-        analytics_mart.mart_all_tracks
+        {{ ref('mart_all_tracks') }}
     group by 
         1
 )
@@ -25,7 +25,7 @@ with all_tracks_summary_stats_cte as (
             + cume_dist()   over (partition by mat.artist_name_hint order by mat.track_popularity)
         ) / 2.0 as track_popularity_mid_rank_cdf
     from
-        analytics_mart.mart_all_tracks as mat
+        {{ ref('mart_all_tracks') }} as mat
         join all_tracks_summary_stats_cte as atss_cte
             on mat.artist_name_hint = atss_cte.artist_name_hint
 )
@@ -36,43 +36,3 @@ select
     , track_popularity_mid_rank_cdf * track_duration_minutes as track_weighted_popularity_mid_rank_cdf
 from 
     all_tracks_popularity_metrics_1_cte as atpm_cte
-
-;
-
-
-select 
-    artist_name_hint
-    , track_popularity
-    , count(1)
-from  
-    analytics_mart.mart_all_tracks 
-group by 
-    1,2
-limit 
-    1000
-;
-
-
-with event_id_popularity as (
-select 
-    cmsd.artist_name_hint
-    ,cmsd.coachella_analytics_period
-    ,cmsd.event_id
-    ,sum(matps.track_weighted_popularity_mid_rank_cdf) / sum(matps.track_duration_minutes) * 1 as weighted_set_popularity_score
-from 
-    analytics_project.project_002_coachella_master_setlist_data as cmsd
-    join analytics_mart.mart_all_track_popularity_scores as matps
-        on cmsd.track_id = matps.track_id
-group by 
-    1,2,3
-)
-select 
-    artist_name_hint
-    , coachella_analytics_period
-    , avg(weighted_set_popularity_score)
-from    
-    event_id_popularity
-group by 
-    1,2
-limit 
-    100
