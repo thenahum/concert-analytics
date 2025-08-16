@@ -153,6 +153,9 @@ select
 	, es.event_total_encore_songs
 	, es.event_total_non_encore_songs
     , coalesce(tr.track_name,cs_cte.song_name,'Unknown') as track_song_name
+    , matps.track_duration_minutes
+    , matps.track_popularity_mid_rank_cdf
+    , matps.track_weighted_popularity_mid_rank_cdf
 from 
     setlisth_history_coachella_flags_cte as cs_cte
     left join track_link_filtered_cte as tl_cte
@@ -162,3 +165,5 @@ from
 		on tl_cte.track_id = tr.track_id
     left join {{ ref('mart_event_summary') }} as es
     	on cs_cte.event_id = es.event_id
+    left join {{ ref('mart_all_tracks_popularity_scores') }} as matps
+        on tr.track_id = matps.track_id
