@@ -343,4 +343,6 @@ models:
       - name: track_version_rank
         data_type: bigint
         description: ""
+  - name: mart_all_tracks_popularity_scores
+    description: ""
 

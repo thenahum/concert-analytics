@@ -1,4 +1,3 @@
-# tasks.py
 import os
 import logging
 from invoke import task, Context
@@ -49,15 +48,28 @@ def tunnel(c: Context):
 
 def run_dbt_command(c: Context, command: str):
     """Run a dbt command inside the dbt project folder"""
+    home = os.path.expanduser("~")
+    target_profile = os.path.join(home, ".dbt", "profiles.yml")
+
+    # Only call setup_profile if the symlink is missing or broken
+    result = c.run(f"test -L {target_profile} && test -e {target_profile}", warn=True, hide=True)
+    if not result.ok:
+        log.info("🧪 DBT profile symlink missing or broken — running setup...")
+        setup_profile(c)
+
     log.info(f"🏃 Running dbt {command}")
     with c.cd(DBT_PROJECT_DIR):
         c.run(f"dbt {command}", env=DBT_ENV)
 
 @task(pre=[tunnel])
-def run(c: Context):
+def run(c: Context, selector=""):
+    """
+    Run `dbt run`, optionally with a --select selector (e.g. tag:analytics_project)
+    Usage: inv run --selector=tag:analytics_project
+    """
     log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
-    """Run dbt run"""
-    run_dbt_command(c, "run")
+    select_arg = f"--select {selector}" if selector else ""
+    run_dbt_command(c, f"run {select_arg}")
 
 @task(pre=[tunnel])
 def build(c: Context):
@@ -70,6 +82,12 @@ def test(c: Context):
     log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
     """Run dbt test"""
     run_dbt_command(c, "test")
+
+@task(pre=[tunnel])
+def deps(c: Context):
+    log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
+    """Run dbt deps"""
+    run_dbt_command(c, "deps")
 
 @task(pre=[tunnel])
 def dbt(c: Context, command="run"):
@@ -89,3 +107,25 @@ def kill_tunnel(c: Context):
         log.info("✅ Tunnel closed.")
     else:
         log.info("💤 No tunnel process found. Nothing to kill.")
+
+@task
+def setup_profile(c: Context):
+    """Ensure ~/.dbt/profiles.yml points to the version-controlled config"""
+    log.info("🔧 Setting up dbt profile symlink")
+    home = os.path.expanduser("~")
+    dbt_dir = os.path.join(home, ".dbt")
+    target_profile = os.path.join(dbt_dir, "profiles.yml")
+    source_profile = os.path.join(os.getcwd(), "concert_analytics_dbt", "config", "profiles.yml")
+
+    c.run(f"mkdir -p {dbt_dir}")
+
+    # If the file exists and is not a symlink, back it up
+    result = c.run(f"test -f {target_profile} && [ ! -L {target_profile} ]", warn=True, hide=True)
+    if result.ok:
+        backup_path = f"{target_profile}.backup"
+        log.info(f"🗂️ Backing up existing profiles.yml to {backup_path}")
+        c.run(f"mv {target_profile} {backup_path}")
+
+    # Create or replace the symlink
+    c.run(f"ln -sf {source_profile} {target_profile}")
+    log.info(f"✅ Symlink created: {target_profile} → {source_profile}")

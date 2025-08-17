@@ -38,3 +38,6 @@ models:
     mart:
       +materialized: view
       +schema: mart
+    project:
+      +materialized: table
+      +schema: project

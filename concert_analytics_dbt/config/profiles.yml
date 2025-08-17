@@ -1,0 +1,12 @@
+concert_analytics_dbt:
+  outputs:
+    dev:
+      dbname: "{{ env_var('DBT_DB') }}"
+      host: "{{ env_var('DBT_HOST') }}"
+      pass: "{{ env_var('DBT_PASSWORD') }}"
+      port: "{{ env_var('DBT_PORT') | int }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'public') }}"
+      threads: 3
+      type: postgres
+      user: "{{ env_var('DBT_USER') }}"
+  target: dev

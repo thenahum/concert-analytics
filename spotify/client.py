@@ -30,7 +30,7 @@ def search_artist_uri(artist_name: str) -> str:
     items = result.get('artists', {}).get('items', [])
     if not items:
         raise ValueError(f"No artist found for '{artist_name}'")
-    return items[0]['uri']
+    return items
 
 
 
