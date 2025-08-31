@@ -5,9 +5,9 @@ import os
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert(0, PROJECT_ROOT)
 
-from spotify import albums_dataframe,album_tracks_dataframe,albums_metadata_dataframe,tracks_metadata_dataframe
-from setlistfm import setlist_dataframe
-from postgres import load_dataframe,upsert_raw_table
+from loadin.spotify import albums_dataframe,album_tracks_dataframe,albums_metadata_dataframe,tracks_metadata_dataframe
+from loadin.setlistfm import setlist_dataframe
+from loadin.postgres import load_dataframe,upsert_raw_table
 
 import logging
 

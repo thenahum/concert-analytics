@@ -1,0 +1,22 @@
+[project]
+name = "loadin"
+version = "0.1.0"
+description = "Concert Analytics ingestion SDK (Postgres, setlist.fm, Spotify)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "pandas>=2.2",
+  "SQLAlchemy>=2.0",
+  "psycopg[binary]>=3.2",
+  "python-dotenv>=1.0",
+  "requests>=2.32",
+  "spotipy>=2.23",
+  "platformdirs>=4.2"
+]
+
+[project.optional-dependencies]
+dev = ["ipykernel", "ruff", "pytest"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

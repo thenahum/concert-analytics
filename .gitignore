@@ -21,3 +21,6 @@ data/*
 
 *.svg
 *.png
+
+#ignore packages info 
+*.egg-info/

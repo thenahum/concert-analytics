@@ -5,11 +5,12 @@ import json
 import hashlib
 import pandas as pd
 import logging
+from ..paths import get_data_dir
 
 logger = logging.getLogger(__name__)
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+# PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = get_data_dir()
 
 def save_json(data, filename):
     path = os.path.join(DATA_DIR, filename)
