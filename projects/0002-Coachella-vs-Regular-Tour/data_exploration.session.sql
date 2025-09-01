@@ -30,6 +30,17 @@ order by
 
 
 select 
+    count(distinct event_id)
+    ,count(1)
+from 
+    analytics_project.project_002_coachella_master_setlist_data
+-- where 
+--     event_id = '6bb546f2'
+limit 100
+;
+
+
+select 
     song_name
     ,song_cover_flag
     ,song_cover_artist_mbid
@@ -88,3 +99,21 @@ where true
     and artist_name_hint = 'TameImpala'
     and lower(track_name) like '%led%'
 limit 100
+;
+
+select 
+    *
+from 
+    analytics_mart.mart_all_tracks
+where true 
+    and track_id= '6PaSOin7Y9GnXRZ5U5sMsv'
+;
+
+select 
+    *
+from
+    analytics_project.project_002_coachella_master_setlist_data
+where 
+    track_song_name = 'SOLE'
+limit 100
+;

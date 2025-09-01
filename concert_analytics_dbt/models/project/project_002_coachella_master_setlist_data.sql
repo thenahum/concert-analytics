@@ -117,6 +117,7 @@ with coachella_dates_cte(artist_name_hint,coachella_weekend,coachella_start_date
         {{ ref('mart_track_setlist_similarity_scores') }} as mtsss
     where TRUE
         and mtsss.similarity_rank = 1
+        and (mtsss.track_name <> 'SOLE')
     union 
     select 
         *
