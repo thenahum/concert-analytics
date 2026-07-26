@@ -73,6 +73,8 @@ It should contain:
 
 Database access should stay in `loadin`. `setkit` should not duplicate Postgres connection logic.
 
+See `docs/SetkitCatalog.md` for the current analyst-facing function catalog.
+
 ### `projects`
 
 Project folders are the article workbench. A project can include:

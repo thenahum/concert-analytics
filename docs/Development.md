@@ -111,6 +111,8 @@ Recommended project hygiene:
 
 `setkit` should be developed as reusable visualizations, metrics, and helpers emerge from ongoing project work. Favor clean platform APIs over compatibility shims for old notebook imports; if an older project needs to rerun, update the project code to the current API. Existing projects do not need to be retrofitted wholesale just to use `setkit`.
 
+Keep `docs/SetkitCatalog.md` updated when adding or changing analyst-facing `setkit` functions.
+
 Recommended `setkit` extraction workflow:
 
 - Build the new reusable functionality in `setkit` first.

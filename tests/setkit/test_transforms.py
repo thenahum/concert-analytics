@@ -36,7 +36,7 @@ def test_as_ordered_category_sets_requested_order():
     assert list(result["period"].cat.categories) == ["Before Coachella", "Coachella"]
 
 
-def test_show_counts_by_period_counts_unique_events():
+def test_counts_by_counts_unique_values_with_optional_parent_group():
     frame = pd.DataFrame(
         {
             "artist_display_name": ["Artist A", "Artist A", "Artist A", "Artist B"],
@@ -45,9 +45,13 @@ def test_show_counts_by_period_counts_unique_events():
         }
     )
 
-    result = transforms.show_counts_by_period(
+    result = transforms.counts_by(
         frame,
-        period_order=["Before Coachella", "Coachella"],
+        by="coachella_analytics_period",
+        group_by="artist_display_name",
+        value_column="event_id",
+        count_column="num_shows",
+        category_orders={"coachella_analytics_period": ["Before Coachella", "Coachella"]},
     )
 
     assert result.to_dict("records") == [
@@ -68,3 +72,26 @@ def test_show_counts_by_period_counts_unique_events():
         },
     ]
     assert result["coachella_analytics_period"].cat.ordered
+
+
+def test_counts_by_counts_rows_without_parent_group():
+    frame = pd.DataFrame({"album_name": ["A", "A", "B"]})
+
+    result = transforms.counts_by(frame, by="album_name", count_column="times_played")
+
+    assert result.to_dict("records") == [
+        {"album_name": "A", "times_played": 2},
+        {"album_name": "B", "times_played": 1},
+    ]
+
+
+def test_counts_by_can_sort_counts():
+    frame = pd.DataFrame({"artist": ["A", "A", "B"], "song": ["x", "y", "x"]})
+
+    result = transforms.counts_by(frame, by="song", group_by="artist", sort=True)
+
+    assert result.to_dict("records") == [
+        {"artist": "A", "song": "x", "count": 1},
+        {"artist": "A", "song": "y", "count": 1},
+        {"artist": "B", "song": "x", "count": 1},
+    ]
