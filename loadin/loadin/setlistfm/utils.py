@@ -1,24 +1,21 @@
 from .client import get_all_setlists
+from ..paths import get_data_dir
 
 import os
 import json
-import hashlib
 import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
-
 def save_json(data, filename):
-    path = os.path.join(DATA_DIR, filename)
+    path = os.path.join(get_data_dir(), filename)
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
     logger.info(f"Saved to {path}")
 
 def load_json(filename):
-    path = os.path.join(DATA_DIR, filename)
+    path = os.path.join(get_data_dir(), filename)
     with open(path, "r") as f:
         return json.load(f)
 
@@ -44,7 +41,7 @@ def cached_json(fetch_func, mbid, *args, name_hint=None, force=False, cache_mode
         dict or list
     """
     filename = _build_cache_filename(fetch_func.__name__, mbid, cache_mode, name_hint)
-    path = os.path.join(DATA_DIR, filename)
+    path = os.path.join(get_data_dir(), filename)
 
     if not force and os.path.exists(path):
         logger.info(f"Using cached: {filename}")
@@ -81,9 +78,6 @@ def setlists_to_dataframe(setlists, name_hint):
         event_url = sl.get("url")
 
         sets = sl.get("sets", {}).get("set", [])
-        tour = sl.get("tour",{}).get("name")
-
-
         for set_index, set_entry in enumerate(sets):
             encore_index = set_entry.get("encore", 0)
             songs = set_entry.get("song", [])

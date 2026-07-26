@@ -5,22 +5,15 @@ __pycache__/
 *.py[cod]
 .DS_STORE
 .cache
-sql_playground/
 logs/
+sql_playground/.dbeaver
 
 # Ignore Jupyter notebook autosave checkpoints
 .ipynb_checkpoints/
 
-# Ignore all files in data/...
-data/*
-
-# ...but keep the folder and any .gitkeep file
-!data/.gitkeep
-
-.vscode
-
-*.svg
-*.png
-
 #ignore packages info 
 *.egg-info/
+
+concert_analytics_dbt/target/
+concert_analytics_dbt/dbt_packages/
+concert_analytics_dbt/logs/
