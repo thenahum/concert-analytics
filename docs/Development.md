@@ -109,7 +109,17 @@ Recommended project hygiene:
 - Prefer Python compile checks for project scripts.
 - Avoid rewriting notebooks or exports unless the task specifically calls for it.
 
-`setkit` should be developed as reusable visualizations, metrics, and helpers emerge from ongoing project work. Existing projects do not need to be retrofitted wholesale just to use `setkit`.
+`setkit` should be developed as reusable visualizations, metrics, and helpers emerge from ongoing project work. Favor clean platform APIs over compatibility shims for old notebook imports; if an older project needs to rerun, update the project code to the current API. Existing projects do not need to be retrofitted wholesale just to use `setkit`.
+
+Recommended `setkit` extraction workflow:
+
+- Build the new reusable functionality in `setkit` first.
+- Check that existing project code still works unless intentionally touched.
+- Prefer focused Python tests over notebook edits for validating new package elements.
+- When a refactor is needed, move a small representative project chunk into a test before or alongside the notebook/script change.
+- It is acceptable to validate against live PostgreSQL data using read-only queries copied from existing notebooks or project scripts. The concert analytics warehouse contains public-source analysis data, and these established read queries are allowed for realism.
+- Keep database access out of `setkit` itself. Live-data validation should live in project scripts or tests that call `loadin.postgres`, not inside the `setkit` package.
+- Notebook refactors are optional adoption work, not required proof that a new `setkit` element is useful.
 
 Current lower-priority backlog:
 
