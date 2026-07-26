@@ -13,9 +13,6 @@ Current public subpackages:
 - `setkit.transforms`: dataframe shaping helpers.
 - `setkit.export`: chart artifact save paths.
 - `setkit.notebook`: lightweight setup for analysis notebooks.
-
-Planned next subpackage:
-
 - `setkit.metrics`: pure reusable analysis metrics.
 
 See `docs/SetkitCatalog.md` for the analyst-facing catalog and examples.
@@ -86,4 +83,19 @@ Database helpers should still be imported explicitly from `loadin`.
 
 ## Metrics
 
-Metrics are the next planned package area. They should stay pure: pass in dataframes or series, return values or dataframes, and avoid database calls or project-specific assumptions.
+Use `setkit.metrics` for reusable notebook-side calculations that are more analytical than dataframe shaping:
+
+```python
+from setkit import metrics
+
+tour_variety = metrics.distribution_summary(
+    song_tour_prob_df,
+    category="song_name",
+    group_by="event_tour_id",
+    weight_column="song_probability_in_tour",
+    entropy_column="setlist_entropy",
+    effective_count_column="effective_song_count",
+)
+```
+
+Metrics stay pure: pass in dataframes, series, or scalar values; return values or dataframes; avoid database calls or project-specific assumptions.

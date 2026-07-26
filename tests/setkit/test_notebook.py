@@ -54,6 +54,7 @@ def test_setup_returns_context_and_does_not_import_database_helpers(tmp_path):
     root.mkdir()
     original_path = list(sys.path)
     original_max_columns = pd.get_option("display.max_columns")
+    original_loadin_postgres = sys.modules.pop("loadin.postgres", None)
 
     try:
         context = notebook.setup(
@@ -69,5 +70,7 @@ def test_setup_returns_context_and_does_not_import_database_helpers(tmp_path):
         assert pd.get_option("display.max_columns") == 99
         assert "loadin.postgres" not in sys.modules
     finally:
+        if original_loadin_postgres is not None:
+            sys.modules["loadin.postgres"] = original_loadin_postgres
         sys.path[:] = original_path
         pd.set_option("display.max_columns", original_max_columns)

@@ -10,6 +10,7 @@ This handoff captures the current state after the first `setkit` extraction pass
 - `setkit.export` for standard project chart artifact paths and save helpers.
 - `setkit.transforms` for reusable dataframe shaping, including generic `counts_by`, ordered categories, and label truncation.
 - `setkit.notebook` for lightweight notebook setup.
+- `setkit.metrics` for pure analysis metrics, starting with entropy, effective count, and grouped distribution summaries.
 - `setkit.charts` for reusable horizontal and segmented bar charts.
 
 The Project 002 notebook was only lightly touched for the `loadin.postgres` import refactor. The older hardcoded chart/export helpers in the notebook were intentionally left alone.
@@ -51,7 +52,7 @@ Current artifacts:
 
 ## Remaining Rough Edges
 
-- `setkit.metrics` has not been built yet.
+- `setkit.metrics` is only lightly scaffolded and has its first distribution/concentration helpers.
 - The no-limit song breakout chart is intentionally dense and needs human review.
 - Chart builders make common shapes easier, but sizing and label-density defaults will probably need more tuning after looking at real exports.
 - Project notebooks still contain older hardcoded helpers. That is acceptable until those projects are intentionally refactored.
@@ -60,17 +61,20 @@ Current artifacts:
 ## Suggested First Moves Tomorrow
 
 1. Review the SVG artifacts visually.
-2. Build `setkit.metrics` with pure dataframe-based functions.
-3. Add focused metrics tests with small live-data slices from Projects 001 and 002.
-4. Update `docs/SetkitCatalog.md` with each metric as it lands.
-5. Decide whether the next story project starts notebook-first or with a small dbt project model.
+2. Consider one small live-data metrics validation using Projects 001 or 002 when the database is available.
+3. Add the next metric only when a project reveals a concrete need.
+4. Decide whether the next story project starts notebook-first or with a small dbt project model.
 
 ## Metrics Candidates
 
-Good first candidates:
+Implemented first:
 
-- `setlist_entropy`: how concentrated or varied a setlist is.
-- `effective_song_count`: entropy converted into an intuitive count-like measure.
+- `metrics.entropy`: how concentrated or varied a category distribution is.
+- `metrics.effective_count`: entropy converted into an intuitive count-like measure.
+- `metrics.distribution_summary`: grouped entropy/effective-count summaries for tour, show, era, album, or song distributions.
+
+Good next candidates:
+
 - `representation_by_category`: era, album, or period share by show, artist, or tour.
 - `repeat_rate`: how often songs repeat across shows.
 - `period_delta`: before/after or project-period comparisons.

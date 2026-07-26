@@ -101,7 +101,7 @@ These tasks can be stateful. Some may start SSH tunnels, touch `~/.dbt/profiles.
 - `transforms`: reusable dataframe shaping before charts or metrics
 - `export`: standard chart artifact paths and save helpers
 - `notebook`: lightweight notebook setup helpers
-- `metrics`: reusable pure analysis metrics as they are promoted from project work
+- `metrics`: reusable pure analysis metrics, such as entropy and effective category counts, as they are promoted from project work
 
 `projects/` is the journalism workbench. Project files should be clear and reproducible enough to collaborate on, but they do not need production-level test coverage.
 
@@ -141,5 +141,6 @@ Project scripts usually only need compile checks unless a task calls for deeper 
 - [Architecture](docs/Architecture.md)
 - [Development](docs/Development.md)
 - [setkit catalog](docs/SetkitCatalog.md)
+- [Gaffer theme](docs/GafferTheme.md)
 - [Next session handoff](docs/NextSessionHandoff.md)
 - [Agent guidance](AGENTS.md)
