@@ -1,0 +1,19 @@
+# .gitignore
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.DS_STORE
+.cache
+logs/
+sql_playground/.dbeaver
+
+# Ignore Jupyter notebook autosave checkpoints
+.ipynb_checkpoints/
+
+#ignore packages info 
+*.egg-info/
+
+concert_analytics_dbt/target/
+concert_analytics_dbt/dbt_packages/
+concert_analytics_dbt/logs/

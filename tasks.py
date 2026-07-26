@@ -90,6 +90,12 @@ def deps(c: Context):
     run_dbt_command(c, "deps")
 
 @task(pre=[tunnel])
+def bootstrap(c: Context):
+    log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
+    """Create required schemas and database functions for a rebuild."""
+    run_dbt_command(c, "run-operation bootstrap_database")
+
+@task(pre=[tunnel])
 def dbt(c: Context, command="run"):
     log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
     """Run arbitrary dbt command (e.g. --select my_model)"""

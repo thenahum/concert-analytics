@@ -1,31 +1,51 @@
 # setlistfm/client.py
 
 # imports
+from dataclasses import dataclass
 from dotenv import load_dotenv
 import os
+from pathlib import Path
+
 import requests
-import json
 import time
 import logging
 
 logger = logging.getLogger(__name__)
 
-# load enviornments with API Keys
-load_dotenv()  # loads from .env by default
 API_DELAY_SEC = 2
 
-# Set API details
 BASE_URL = "https://api.setlist.fm/rest/1.0"
-HEADERS = {
-    "x-api-key": os.getenv("SETLIST_FM_API_KEY"),
-    "Accept": "application/json",
-}
+
+
+@dataclass(frozen=True, repr=False)
+class SetlistFmConfig:
+    api_key: str | None
+
+
+def get_setlistfm_config(
+    load_env: bool = True,
+    dotenv_path: str | Path | None = None,
+) -> SetlistFmConfig:
+    """Read setlist.fm configuration from the environment."""
+    if load_env:
+        load_dotenv(dotenv_path=dotenv_path)
+
+    return SetlistFmConfig(api_key=os.getenv("SETLIST_FM_API_KEY"))
+
+
+def _headers(config: SetlistFmConfig | None = None, load_env: bool = True):
+    config = config or get_setlistfm_config(load_env=load_env)
+    return {
+        "x-api-key": config.api_key,
+        "Accept": "application/json",
+    }
 
 # Function to search for artist's MBID, takes string value, returns MBID 
-def search_artist(name):
+def search_artist(name, config: SetlistFmConfig | None = None):
+    config = config or get_setlistfm_config()
     url = f"{BASE_URL}/search/artists" #https://api.setlist.fm/docs/1.0/resource__1.0_search_artists.html
     params = {"artistName": name, "p": 1}
-    response = requests.get(url, headers=HEADERS, params=params)
+    response = requests.get(url, headers=_headers(config), params=params)
 
     logger.debug(f"Status code: {response.status_code} for URL: {response.url}")
 
@@ -38,9 +58,10 @@ def search_artist(name):
     return response.json() #https://api.setlist.fm/docs/1.0/json_Artists.html
 
 # Function to get the first page of an artists setlist. Takes MBID, returns setlist JSON Object 
-def get_artist_setlists(mbid):
+def get_artist_setlists(mbid, config: SetlistFmConfig | None = None):
+    config = config or get_setlistfm_config()
     url = f"{BASE_URL}/artist/{mbid}/setlists" #https://api.setlist.fm/docs/1.0/resource__1.0_artist__mbid__setlists.html
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=_headers(config))
     logger.debug(f"Status code: {response.status_code} for URL: {response.url}")
 
     try:
@@ -52,7 +73,8 @@ def get_artist_setlists(mbid):
     return response.json() #https://api.setlist.fm/docs/1.0/json_Setlists.html
 
 # Function to get all pages for a specific artists unless you set a max page number
-def get_all_setlists(mbid, max_pages=None):
+def get_all_setlists(mbid, max_pages=None, config: SetlistFmConfig | None = None):
+    config = config or get_setlistfm_config()
     setlists = []
     page = 1
 
@@ -61,7 +83,7 @@ def get_all_setlists(mbid, max_pages=None):
             time.sleep(API_DELAY_SEC)  # apply delay *before* the next request
 
         url = f"{BASE_URL}/artist/{mbid}/setlists"
-        response = requests.get(url, headers=HEADERS, params={"p": page})
+        response = requests.get(url, headers=_headers(config), params={"p": page})
         
         logger.debug(f"Status code: {response.status_code} for URL: {response.url}")
 

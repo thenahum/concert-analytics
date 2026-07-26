@@ -1,5 +1,14 @@
-# Optional: import useful methods here to flatten import path
-from .loader import load_dataframe,upsert_raw_table
-from .fetcher import run_query,fetch_table
+from .connection import PostgresConfig, get_engine, get_postgres_config
+from .loader import load_dataframe, refresh_raw_table, upsert_raw_table
+from .fetcher import fetch_table, run_query
 
-__all__ = ["load_dataframe","upsert_raw_table","fetch_table","run_query"]
+__all__ = [
+    "fetch_table",
+    "get_engine",
+    "get_postgres_config",
+    "load_dataframe",
+    "PostgresConfig",
+    "refresh_raw_table",
+    "run_query",
+    "upsert_raw_table",
+]
