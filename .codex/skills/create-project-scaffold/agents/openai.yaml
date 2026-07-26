@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Project Scaffold"
+  short_description: "Scaffold a numbered concert analysis project"
+  default_prompt: "Use $create-project-scaffold to create the next numbered concert analysis project."

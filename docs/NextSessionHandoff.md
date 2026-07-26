@@ -58,12 +58,41 @@ Current artifacts:
 - Project notebooks still contain older hardcoded helpers. That is acceptable until those projects are intentionally refactored.
 - VS Code/Pylance may still need `.vscode/settings.json` extra paths for `loadin` if it warns on `loadin.postgres`.
 
+## Platform Follow-Up: Reproducible Ingestion
+
+Project 0003 exposed a useful boundary for the next `loadin` pass. Artist search and ingestion can become more robust reusable utilities, but projects must retain a durable record of what they intended to load.
+
+Preserve this division of responsibility:
+
+- `loadin` should own API mechanics: paginated artist search, candidate ranking, caching, fetch/preview/load orchestration, validation, and PostgreSQL upserts.
+- Each project should retain a small ingestion recipe under `source/`: artist name, Spotify URI, setlist.fm MBID, requested datasets, `name_hint`, sample/full parameters, and raw-table mappings. Keep credentials and machine-specific paths out of the recipe.
+- Runtime choices such as preview/load and cache/refresh can remain interactive, but an actual load should emit a machine-readable run record.
+
+A future ingestion run record should capture at least:
+
+- A run ID and UTC timestamps.
+- Project number and source identifiers.
+- Git commit and ingestion-recipe checksum when available.
+- Sample/full and cache-preferred/refresh choices.
+- Cache object names or content checksums and API retrieval timestamps.
+- Target tables, row counts, and final status.
+
+Do not treat the current local `data/` cache as disaster recovery. It is ignored, machine-local, and may disappear. A project recipe plus code can reproduce the request, but it cannot reproduce an earlier API response after upstream data changes. Exact recovery requires both:
+
+1. Regular PostgreSQL backups for the durable warehouse.
+2. Versioned raw API snapshots in durable external storage, with the ingestion run record pointing to the snapshot versions or checksums.
+
+With those pieces, recovery becomes: restore raw snapshots or PostgreSQL, replay project ingestion recipes when necessary, then rebuild staging, marts, and project models with dbt. An ingestion audit table may be useful, but its schema and backup location are a platform decision; do not add warehouse schemas or tables without maintainer approval.
+
+Project 0003's `source/search_artists.py` and `source/load_data.py` are the first concrete workflow to study before extracting APIs. Keep the project-level identifiers and recipe even after orchestration moves into `loadin`; thin project entrypoints are desirable because they preserve story-specific intent without duplicating client mechanics.
+
 ## Suggested First Moves Tomorrow
 
 1. Review the SVG artifacts visually.
 2. Consider one small live-data metrics validation using Projects 001 or 002 when the database is available.
 3. Add the next metric only when a project reveals a concrete need.
 4. Decide whether the next story project starts notebook-first or with a small dbt project model.
+5. Use Project 0003 to design a declarative ingestion recipe and run-record format before generalizing its search/load scripts into `loadin`.
 
 ## Metrics Candidates
 

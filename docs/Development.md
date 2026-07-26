@@ -97,16 +97,18 @@ Database access should stay out of `setkit`.
 
 ## Projects
 
-Project folders can contain scripts, notebooks, SQL, exports, and figures. Newer projects should prefer a dbt project model for the master analysis dataset.
+New project folders use the standard scaffold documented in `projects/README.md`: `source/`, `notebooks/`, `figures/`, and `exports/`. Newer projects should prefer a dbt project model for the master analysis dataset.
 
 Project folders are the journalism workbench. They should be readable and reproducible enough for collaboration, but they do not need the same test depth as `loadin`, `setkit`, or dbt.
 
 Recommended project hygiene:
 
 - Use `loadin.*` imports for ingestion and database access.
-- Keep project scripts runnable as direct commands.
+- Keep project scripts in the project's `source/` folder and runnable as direct commands.
 - Put execution in `main()` so imports and compile checks do not trigger APIs or database writes.
 - Prefer Python compile checks for project scripts.
+- Keep exploratory SQL in the ignored `sql_playground/`; promote the final master query to a dbt project model.
+- Prefer paired `.ipynb` and Jupytext `py:percent` `.py` files for new collaborative notebook analysis once Jupytext is configured.
 - Avoid rewriting notebooks or exports unless the task specifically calls for it.
 
 `setkit` should be developed as reusable visualizations, metrics, and helpers emerge from ongoing project work. Favor clean platform APIs over compatibility shims for old notebook imports; if an older project needs to rerun, update the project code to the current API. Existing projects do not need to be retrofitted wholesale just to use `setkit`.

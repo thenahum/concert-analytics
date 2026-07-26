@@ -41,10 +41,17 @@ def _headers(config: SetlistFmConfig | None = None, load_env: bool = True):
     }
 
 # Function to search for artist's MBID, takes string value, returns MBID 
-def search_artist(name, config: SetlistFmConfig | None = None):
+def search_artist(
+    name,
+    config: SetlistFmConfig | None = None,
+    *,
+    page: int = 1,
+    sort: str = "sortName",
+):
+    """Search for artists by name on one result page."""
     config = config or get_setlistfm_config()
     url = f"{BASE_URL}/search/artists" #https://api.setlist.fm/docs/1.0/resource__1.0_search_artists.html
-    params = {"artistName": name, "p": 1}
+    params = {"artistName": name, "p": page, "sort": sort}
     response = requests.get(url, headers=_headers(config), params=params)
 
     logger.debug(f"Status code: {response.status_code} for URL: {response.url}")
