@@ -5,6 +5,7 @@ description = "On the Setlist Analytics SDK"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+  "numpy>=2.2",
   "pandas>=2.2",
   "plotnine>=0.14"
 ]

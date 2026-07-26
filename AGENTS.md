@@ -57,7 +57,9 @@ Treat `loadin/`, `setkit/`, and `concert_analytics_dbt/` as production-ish libra
 
 Treat `projects/`, notebooks, and project SQL as the journalism workbench. In project folders, the agent's role is closer to staff data engineer and analytics collaborator: make the work faster, clearer, and reproducible enough without over-engineering exploratory analysis. Compile/parse checks and clear entrypoints are usually enough unless the maintainer asks for stronger validation.
 
-`setkit` should evolve from reusable chart, metric, and notebook ideas discovered during ongoing project work. Do not rewrite old projects just to force `setkit` usage.
+`setkit` should evolve from reusable chart, metric, and notebook ideas discovered during ongoing project work. Keep platform APIs clean even when that means updating older project notebooks to rerun. Do not carry compatibility shims only to preserve stale project imports, and do not rewrite old projects just to force `setkit` usage.
+
+When extracting `setkit` functionality, build the package element first and validate it with focused Python tests rather than editing notebooks as the default integration harness. If a project refactor is needed, test a small representative project chunk before or alongside the change. It is acceptable to use read-only PostgreSQL queries copied from existing notebooks or project scripts for realistic validation, because this warehouse contains public-source analysis data and these read paths are already part of the project workflow. Keep database access out of `setkit` itself; live-data tests should call `loadin.postgres` or project scripts.
 
 ## Secrets And Privacy
 

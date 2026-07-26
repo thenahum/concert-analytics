@@ -96,12 +96,16 @@ These tasks can be stateful. Some may start SSH tunnels, touch `~/.dbt/profiles.
 
 `setkit` is the storytelling tool:
 
-- reusable chart themes
-- reusable chart builders
-- reusable metrics
-- notebook/storytelling helpers
+- `gaffer`: On the Setlist visual identity, colors, fonts, and Plotnine theme helpers
+- `charts`: reusable chart builders with explicit dataframe contracts
+- `transforms`: reusable dataframe shaping before charts or metrics
+- `export`: standard chart artifact paths and save helpers
+- `notebook`: lightweight notebook setup helpers
+- `metrics`: reusable pure analysis metrics, such as entropy and effective category counts, as they are promoted from project work
 
 `projects/` is the journalism workbench. Project files should be clear and reproducible enough to collaborate on, but they do not need production-level test coverage.
+
+See the [setkit function catalog](docs/SetkitCatalog.md) for the current analyst-facing API and examples.
 
 ## Validation
 
@@ -110,6 +114,20 @@ Current lightweight library test command:
 ```bash
 .venv/bin/python -m pytest tests/loadin
 ```
+
+Current focused `setkit` test command:
+
+```bash
+.venv/bin/python -m pytest tests/setkit/test_gaffer.py tests/setkit/test_export.py tests/setkit/test_transforms.py tests/setkit/test_charts.py tests/setkit/test_notebook.py
+```
+
+Current live-data `setkit` element test:
+
+```bash
+.venv/bin/python -m pytest -rs tests/setkit/new_element_test.py
+```
+
+The live element test uses read-only PostgreSQL queries from existing project analysis and writes ignored review SVGs to `tests/setkit/artifacts/`.
 
 Project scripts usually only need compile checks unless a task calls for deeper validation:
 
@@ -122,4 +140,7 @@ Project scripts usually only need compile checks unless a task calls for deeper 
 
 - [Architecture](docs/Architecture.md)
 - [Development](docs/Development.md)
+- [setkit catalog](docs/SetkitCatalog.md)
+- [Gaffer theme](docs/GafferTheme.md)
+- [Next session handoff](docs/NextSessionHandoff.md)
 - [Agent guidance](AGENTS.md)
