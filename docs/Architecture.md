@@ -60,6 +60,8 @@ The raw ingestion schema remains `raw`. It should be created by dbt bootstrap or
 
 dbt should also own database prerequisites required by models, such as the `analytics_mart.similarity(...)` function currently referenced by the mart layer.
 
+Shared mart models should stay focused on broadly reusable source and warehouse semantics. Keep deterministic, artist-agnostic rules here when they apply across catalogs, such as preferring an album track over an identically named single in `mart_all_tracks_versions`. Artist-specific catalog quirks, narrative choices, or rights-era policies should be handled in project master models instead of generalized into mart models unless they reveal a structural change needed for all setlist.fm or Spotify data.
+
 ### `setkit`
 
 `setkit` owns storytelling support.
@@ -86,6 +88,8 @@ Project folders are the article workbench. A project can include:
 - CSV exports and figures used for publication.
 
 Project 0002 follows the newer dbt master dataset pattern. Project 0001 predates that pattern and may remain notebook-documented until later cleanup.
+
+Project master models are the right layer for story-specific merge policy between setlist.fm and Spotify. For example, Taylor Swift's Taylor's Version recordings should be evaluated in the Taylor project master model, where the project can decide how to rank re-recordings, originals, vault tracks, and popularity ties without changing shared mart behavior for every artist.
 
 ## Data Authority
 

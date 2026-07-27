@@ -1,36 +1,63 @@
 import os
 import logging
+import shlex
+from pathlib import Path
 from invoke import task, Context
 from dotenv import load_dotenv
-
-# Load environment variables from .env
-load_dotenv()
 
 # Configure logger
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
 
-# SSH Tunnel settings
-TUNNEL_PORT = os.getenv("PGPORT", "5433")
-REMOTE_PORT = os.getenv("REMOTE_PORT", "5432")
-SSH_USER = os.getenv("SSH_USER")
-SSH_HOST = os.getenv("SSH_HOST")
-
 # DBT project path
 DBT_PROJECT_DIR = "concert_analytics_dbt"
 
-# DBT environment variables
-DBT_ENV = {
-    "DBT_HOST": os.getenv("PGHOST", "localhost"),
-    "DBT_PORT": os.getenv("PGPORT", TUNNEL_PORT),
-    "DBT_USER": os.getenv("PGUSER"),
-    "DBT_PASSWORD": os.getenv("PGPASSWORD"),
-    "DBT_DB": os.getenv("DBT_DB"),
-    "DBT_SCHEMA": os.getenv("DBT_SCHEMA"),
-}
+
+def load_repo_env() -> None:
+    """Load the repository .env only when a task needs runtime configuration."""
+    load_dotenv(dotenv_path=Path(__file__).with_name(".env"))
+
+
+def dbt_env() -> dict[str, str]:
+    """Build dbt's environment from current process settings."""
+    load_repo_env()
+    pg_port = os.getenv("PGPORT", "5433")
+    env = {
+        "DBT_HOST": os.getenv("PGHOST", "localhost"),
+        "DBT_PORT": pg_port,
+        "DBT_USER": os.getenv("PGUSER"),
+        "DBT_PASSWORD": os.getenv("PGPASSWORD"),
+        "DBT_DB": os.getenv("DBT_DB") or os.getenv("PGDATABASE"),
+        "DBT_SCHEMA": os.getenv("DBT_SCHEMA", "public"),
+    }
+    return {key: value for key, value in env.items() if value is not None}
+
+
+def require_env_vars(names: list[str]) -> None:
+    missing = [name for name in names if not os.getenv(name)]
+    if missing:
+        rendered = ", ".join(missing)
+        raise RuntimeError(f"Missing required environment variable(s): {rendered}")
+
+
+def dbt_executable() -> str:
+    local_dbt = Path(__file__).parent / ".venv" / "bin" / "dbt"
+    if local_dbt.exists():
+        return quote_path(local_dbt)
+    return "dbt"
+
+
+def quote_path(path: str | Path) -> str:
+    return shlex.quote(str(path))
 
 @task
 def tunnel(c: Context):
+    load_repo_env()
+    tunnel_port = os.getenv("PGPORT", "5433")
+    remote_port = os.getenv("REMOTE_PORT", "5432")
+    ssh_user = os.getenv("SSH_USER")
+    ssh_host = os.getenv("SSH_HOST")
+
     log.info(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'unknown')}")
     """Start SSH tunnel if in local environment"""
     environment = os.getenv("ENVIRONMENT", "local")
@@ -38,28 +65,34 @@ def tunnel(c: Context):
         log.info("🏗️ Running on server — skipping SSH tunnel")
         return
 
-    result = c.run(f"lsof -i TCP:{TUNNEL_PORT} | grep ssh", warn=True, hide=True)
-    if result.ok:
-        log.info(f"🔌 Tunnel already running on port {TUNNEL_PORT}")
-    else:
-        log.info(f"🚀 Starting SSH tunnel to {SSH_USER}@{SSH_HOST}...")
-        c.run(f"ssh -f -N -L {TUNNEL_PORT}:localhost:{REMOTE_PORT} {SSH_USER}@{SSH_HOST}")
-        log.info(f"🔐 Tunnel established at localhost:{TUNNEL_PORT}")
+    require_env_vars(["SSH_USER", "SSH_HOST"])
 
-def run_dbt_command(c: Context, command: str):
+    result = c.run(f"lsof -i TCP:{shlex.quote(tunnel_port)} | grep ssh", warn=True, hide=True)
+    if result.ok:
+        log.info(f"🔌 Tunnel already running on port {tunnel_port}")
+    else:
+        log.info(f"🚀 Starting SSH tunnel to {ssh_user}@{ssh_host}...")
+        c.run(
+            "ssh -f -N "
+            f"-L {shlex.quote(tunnel_port)}:localhost:{shlex.quote(remote_port)} "
+            f"{shlex.quote(ssh_user)}@{shlex.quote(ssh_host)}"
+        )
+        log.info(f"🔐 Tunnel established at localhost:{tunnel_port}")
+
+def run_dbt_command(c: Context, command: str, *, setup_profiles: bool = True):
     """Run a dbt command inside the dbt project folder"""
     home = os.path.expanduser("~")
     target_profile = os.path.join(home, ".dbt", "profiles.yml")
 
     # Only call setup_profile if the symlink is missing or broken
-    result = c.run(f"test -L {target_profile} && test -e {target_profile}", warn=True, hide=True)
-    if not result.ok:
+    result = c.run(f"test -L {quote_path(target_profile)} && test -e {quote_path(target_profile)}", warn=True, hide=True)
+    if setup_profiles and not result.ok:
         log.info("🧪 DBT profile symlink missing or broken — running setup...")
         setup_profile(c)
 
     log.info(f"🏃 Running dbt {command}")
     with c.cd(DBT_PROJECT_DIR):
-        c.run(f"dbt {command}", env=DBT_ENV)
+        c.run(f"{dbt_executable()} {command}", env=dbt_env())
 
 @task(pre=[tunnel])
 def run(c: Context, selector=""):
@@ -101,10 +134,22 @@ def dbt(c: Context, command="run"):
     """Run arbitrary dbt command (e.g. --select my_model)"""
     run_dbt_command(c, command)
 
+@task(name="dbt-parse")
+def dbt_parse(c: Context):
+    """Parse dbt project files without starting a tunnel or changing ~/.dbt."""
+    run_dbt_command(c, "parse", setup_profiles=False)
+
+@task(name="dbt-ls")
+def dbt_ls(c: Context, selector=""):
+    """List dbt nodes without starting a tunnel or changing ~/.dbt."""
+    select_arg = f"--select {selector}" if selector else ""
+    run_dbt_command(c, f"ls {select_arg}", setup_profiles=False)
+
 @task(name="close")
 def kill_tunnel(c: Context):
     """Kill the SSH tunnel on the local machine"""
-    port = os.getenv("TUNNEL_PORT", "5433")
+    load_repo_env()
+    port = os.getenv("TUNNEL_PORT") or os.getenv("PGPORT", "5433")
     log.info(f"🔍 Checking for SSH tunnel on port {port}...")
     result = c.run(f"lsof -ti tcp:{port}", warn=True, hide=True)
     if result.ok:
@@ -117,21 +162,22 @@ def kill_tunnel(c: Context):
 @task
 def setup_profile(c: Context):
     """Ensure ~/.dbt/profiles.yml points to the version-controlled config"""
+    load_repo_env()
     log.info("🔧 Setting up dbt profile symlink")
     home = os.path.expanduser("~")
     dbt_dir = os.path.join(home, ".dbt")
     target_profile = os.path.join(dbt_dir, "profiles.yml")
     source_profile = os.path.join(os.getcwd(), "concert_analytics_dbt", "config", "profiles.yml")
 
-    c.run(f"mkdir -p {dbt_dir}")
+    c.run(f"mkdir -p {quote_path(dbt_dir)}")
 
     # If the file exists and is not a symlink, back it up
-    result = c.run(f"test -f {target_profile} && [ ! -L {target_profile} ]", warn=True, hide=True)
+    result = c.run(f"test -f {quote_path(target_profile)} && [ ! -L {quote_path(target_profile)} ]", warn=True, hide=True)
     if result.ok:
         backup_path = f"{target_profile}.backup"
         log.info(f"🗂️ Backing up existing profiles.yml to {backup_path}")
-        c.run(f"mv {target_profile} {backup_path}")
+        c.run(f"mv {quote_path(target_profile)} {quote_path(backup_path)}")
 
     # Create or replace the symlink
-    c.run(f"ln -sf {source_profile} {target_profile}")
+    c.run(f"ln -sf {quote_path(source_profile)} {quote_path(target_profile)}")
     log.info(f"✅ Symlink created: {target_profile} → {source_profile}")

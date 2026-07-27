@@ -5,4 +5,9 @@ models:
     description: "Master setlist and track data for project 002 Coachella vs. Normal Tour"
     config:
       tags: ["project_002"]
+
+  - name: project_003_eras_tour_master_setlist_data
+    description: "Master Eras Tour setlist and track data for project 003 Taylor Swift Eras Tour"
+    config:
+      tags: ["project_003"]
     

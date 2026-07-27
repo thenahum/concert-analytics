@@ -23,6 +23,8 @@ API cache files and raw payloads belong in the repository-level ignored `data/` 
 
 Exploratory SQL belongs in the ignored repository-level `sql_playground/`. The final master dataset should become a Project 0003 model under `concert_analytics_dbt/models/project/` once its shape is understood.
 
+Taylor-specific Spotify catalog choices belong in that Project 0003 master model, not in shared mart models. In particular, Taylor's Version matching should be treated as project merge policy: first identify candidate Spotify tracks for each setlist.fm song, then decide whether a Taylor's Version recording should outrank the original or a higher-popularity candidate.
+
 For collaborative notebook work, prefer a paired `.ipynb` and Jupytext `py:percent` `.py` file with the same stem. The notebook preserves the interactive record and rendered output; the text file is the primary surface for agent edits and code review. Jupytext still needs to be added to the repository tooling before synchronization is automatic.
 
 ## Status

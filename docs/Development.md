@@ -70,9 +70,15 @@ inv run
 inv build
 inv test
 inv dbt --command "run --select tag:project_002"
+inv dbt-parse
+inv dbt-ls --selector project_003_eras_tour_master_setlist_data
 ```
 
 These tasks may start an SSH tunnel and may create or replace a symlink at `~/.dbt/profiles.yml`. Treat them as stateful.
+
+`inv dbt-parse` and `inv dbt-ls` are the safer first-pass validation commands for agents. They load dbt environment variables lazily, do not start the SSH tunnel, and do not modify `~/.dbt/profiles.yml`. Use them to validate model registration, YAML, and Jinja parsing before trying a live database command.
+
+Use `inv dbt --command "compile --select <model>"`, `inv run`, `inv build`, or `inv test` when a stronger live-database validation is needed. These commands may start the SSH tunnel and may set up the dbt profile symlink, so they should be treated as stateful database-development operations.
 
 `inv bootstrap` calls `dbt run-operation bootstrap_database`. It creates schemas and the `analytics_mart.similarity(...)` wrapper around Postgres `pg_trgm` similarity. Creating the `pg_trgm` extension may require elevated database privileges depending on the server.
 
