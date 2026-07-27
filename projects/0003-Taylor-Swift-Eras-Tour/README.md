@@ -25,11 +25,18 @@ Exploratory SQL belongs in the ignored repository-level `sql_playground/`. The f
 
 Taylor-specific Spotify catalog choices belong in that Project 0003 master model, not in shared mart models. In particular, Taylor's Version matching should be treated as project merge policy: first identify candidate Spotify tracks for each setlist.fm song, then decide whether a Taylor's Version recording should outrank the original or a higher-popularity candidate.
 
-For collaborative notebook work, prefer a paired `.ipynb` and Jupytext `py:percent` `.py` file with the same stem. The notebook preserves the interactive record and rendered output; the text file is the primary surface for agent edits and code review. Jupytext still needs to be added to the repository tooling before synchronization is automatic.
+For collaborative notebook work, use the paired `notebooks/eras_tour_analysis.ipynb` and Jupytext `py:percent` `notebooks/eras_tour_analysis.py` files. The notebook preserves the interactive record and rendered output; the text file is the primary surface for agent edits and code review. Jupytext is included in the repository tooling, but synchronization still needs to be run explicitly unless the local editor is configured to do it automatically. From the repository root, run `inv notebook-sync` to sync this default Project 003 pair.
 
 ## Status
 
-Artist discovery and interactive source ingestion are implemented. The dbt master model and notebook analysis are still to be developed.
+Artist discovery, interactive source ingestion, the Project 003 dbt master model, and the paired analysis notebook are implemented. The first pass of scale-oriented visualizations exists, but the notebook now needs chart-by-chart refinement before publication.
+
+Next work:
+
+- Refine the analysis notebook one visualization at a time, starting with the Part One scale charts.
+- Continue polishing chart code without embedded titles/subtitles; those are handled downstream in Canva.
+- Revisit the venue geography visualization and investigate whether Plotnine can underlay a real world map beneath the venue points, or whether this chart needs a different mapping utility while preserving the repo's visual workflow.
+- Keep using `inv notebook-sync` between notebook and `.py` edits, with lightweight Python validation unless notebook execution is explicitly needed.
 
 ## Artist Discovery
 

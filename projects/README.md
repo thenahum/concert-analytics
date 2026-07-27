@@ -29,7 +29,8 @@ For a paired notebook such as `analysis.ipynb` and `analysis.py`:
 1. Sync the pair before starting work.
 2. Use the `.py` file for agent edits, code review, and focused compile checks.
 3. Use Jupyter for interactive execution, visual inspection, and narrative refinement.
-4. Sync again after notebook work so code and Markdown changes reach both files.
+4. Sync again after notebook work so code and Markdown changes reach both files:
+   `inv notebook-sync --path=projects/NNNN-Project-Name/notebooks/analysis.ipynb`.
 5. Commit the `.ipynb` when its saved outputs are part of the analytical record.
 
-Jupytext is the recommended pairing tool, but it is not yet included in the repository dependencies. Until it is configured, do not assume notebook and text files synchronize automatically.
+Jupytext is included in the repository dependencies. Synchronization still only happens when Jupytext runs or the editor/Jupyter integration is configured to run it.

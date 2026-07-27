@@ -266,7 +266,7 @@ models:
         description: ""
 
   - name: mart_all_tracks_versions
-    description: ""
+    description: "All artist tracks with duplicate track-name versions ranked by a deterministic, artist-agnostic canonical-track policy."
     columns:
       - name: album_id
         data_type: text
@@ -342,7 +342,6 @@ models:
 
       - name: track_version_rank
         data_type: bigint
-        description: ""
+        description: "Canonical version rank within each artist and lowercased track name. Prefers album tracks, higher Spotify popularity, earlier album release dates, shorter same-date albums, then stable album and track IDs."
   - name: mart_all_tracks_popularity_scores
     description: ""
-

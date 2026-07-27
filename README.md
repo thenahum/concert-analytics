@@ -73,6 +73,7 @@ inv run
 inv build
 inv test
 inv dbt --command "run --select tag:project_002"
+inv notebook-sync
 inv close
 ```
 

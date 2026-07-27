@@ -114,7 +114,7 @@ Recommended project hygiene:
 - Put execution in `main()` so imports and compile checks do not trigger APIs or database writes.
 - Prefer Python compile checks for project scripts.
 - Keep exploratory SQL in the ignored `sql_playground/`; promote the final master query to a dbt project model.
-- Prefer paired `.ipynb` and Jupytext `py:percent` `.py` files for new collaborative notebook analysis once Jupytext is configured.
+- Prefer paired `.ipynb` and Jupytext `py:percent` `.py` files for new collaborative notebook analysis.
 - Avoid rewriting notebooks or exports unless the task specifically calls for it.
 
 `setkit` should be developed as reusable visualizations, metrics, and helpers emerge from ongoing project work. Favor clean platform APIs over compatibility shims for old notebook imports; if an older project needs to rerun, update the project code to the current API. Existing projects do not need to be retrofitted wholesale just to use `setkit`.

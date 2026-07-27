@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 
 # DBT project path
 DBT_PROJECT_DIR = "concert_analytics_dbt"
+DEFAULT_NOTEBOOK_PATH = "projects/0003-Taylor-Swift-Eras-Tour/notebooks/eras_tour_analysis.ipynb"
 
 
 def load_repo_env() -> None:
@@ -45,6 +46,13 @@ def dbt_executable() -> str:
     if local_dbt.exists():
         return quote_path(local_dbt)
     return "dbt"
+
+
+def python_executable() -> str:
+    local_python = Path(__file__).parent / ".venv" / "bin" / "python"
+    if local_python.exists():
+        return quote_path(local_python)
+    return "python"
 
 
 def quote_path(path: str | Path) -> str:
@@ -144,6 +152,18 @@ def dbt_ls(c: Context, selector=""):
     """List dbt nodes without starting a tunnel or changing ~/.dbt."""
     select_arg = f"--select {selector}" if selector else ""
     run_dbt_command(c, f"ls {select_arg}", setup_profiles=False)
+
+
+@task(name="notebook-sync")
+def notebook_sync(c: Context, path=DEFAULT_NOTEBOOK_PATH):
+    """Sync a paired Jupytext notebook and py:percent file."""
+    notebook_path = Path(path)
+    if not notebook_path.exists():
+        raise RuntimeError(f"Notebook path does not exist: {notebook_path}")
+
+    log.info(f"📓 Syncing Jupytext pair for {notebook_path}")
+    c.run(f"{python_executable()} -m jupytext --sync {quote_path(notebook_path)}")
+
 
 @task(name="close")
 def kill_tunnel(c: Context):

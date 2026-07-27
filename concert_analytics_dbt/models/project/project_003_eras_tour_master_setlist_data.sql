@@ -85,33 +85,23 @@ with eras_setlist_history_cte as (
     where true
         and mat.artist_name_hint = 'TaylorSwift'
 )
-, track_link_candidates_cte as (
+, manual_track_link_override_cte(event_set_song_id, track_id) as (
+    values
+        ('d819c206f9305cae84edf2ba03d0ae31', '71BqAINEnezjQfxE4VuJfq')
+        , ('69a9899c82cbfcc0535814a00f184a9f', '2RJnNdu4pb3MypbBroHU0T')
+)
+, track_link_base_candidates_cte as (
     select
         mtsss.artist_name_hint
         , mtsss.song_name
         , mtsss.track_name
         , tt.track_match_name
         , tt.is_taylors_version
-        , bool_or(tt.is_taylors_version) over (
-            partition by
-                mtsss.event_set_song_id
-        ) as has_taylors_version_candidate
+        , false as manual_override_flag
         , mtsss.event_set_song_id
         , mtsss.track_id
         , mtsss.similarity_score
         , mtsss.similarity_rank
-        , row_number() over (
-            partition by
-                mtsss.event_set_song_id
-            order by
-                case
-                    when tt.is_taylors_version then 0
-                    else 1
-                end
-                , mtsss.similarity_rank
-                , mtsss.similarity_score desc
-                , tt.track_popularity desc nulls last
-        ) as project_similarity_rank
     from
         eras_setlist_history_cte as esh
         join {{ ref('mart_track_setlist_similarity_scores') }} as mtsss
@@ -120,6 +110,64 @@ with eras_setlist_history_cte as (
             on mtsss.track_id = tt.track_id
     where true
         and esh.song_cover_flag = false
+
+    union all
+
+    select
+        esh.artist_name_hint
+        , esh.song_name
+        , tt.track_name
+        , tt.track_match_name
+        , tt.is_taylors_version
+        , true as manual_override_flag
+        , esh.event_set_song_id
+        , tt.track_id
+        , 1.0 as similarity_score
+        , 1 as similarity_rank
+    from
+        eras_setlist_history_cte as esh
+        join manual_track_link_override_cte as mtlo
+            on esh.event_set_song_id = mtlo.event_set_song_id
+        join taylor_tracks_cte as tt
+            on mtlo.track_id = tt.track_id
+    where true
+        and esh.song_cover_flag = false
+)
+, track_link_candidates_cte as (
+    select
+        tlbc.artist_name_hint
+        , tlbc.song_name
+        , tlbc.track_name
+        , tlbc.track_match_name
+        , tlbc.is_taylors_version
+        , bool_or(tt.is_taylors_version) over (
+            partition by
+                tlbc.event_set_song_id
+        ) as has_taylors_version_candidate
+        , tlbc.event_set_song_id
+        , tlbc.track_id
+        , tlbc.similarity_score
+        , tlbc.similarity_rank
+        , row_number() over (
+            partition by
+                tlbc.event_set_song_id
+            order by
+                case
+                    when tlbc.manual_override_flag then 0
+                    else 1
+                end
+                , case
+                    when tlbc.is_taylors_version then 0
+                    else 1
+                end
+                , tlbc.similarity_rank
+                , tlbc.similarity_score desc
+                , tt.track_popularity desc nulls last
+        ) as project_similarity_rank
+    from
+        track_link_base_candidates_cte as tlbc
+        join taylor_tracks_cte as tt
+            on tlbc.track_id = tt.track_id
 )
 , track_link_selected_cte as (
     select

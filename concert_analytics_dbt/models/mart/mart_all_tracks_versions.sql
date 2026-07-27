@@ -59,6 +59,10 @@ with album_track_joined as (
 			    	ELSE 1 
 			    end
 			   ,track_popularity DESC NULLS last
+			   ,album_release_date ASC NULLS last
+			   ,album_total_tracks ASC NULLS last
+			   ,album_id ASC
+			   ,track_id ASC
 		) as track_version_rank
  	from 
 	 	album_track_joined
