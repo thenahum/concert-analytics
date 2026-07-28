@@ -29,14 +29,32 @@ For collaborative notebook work, use the paired `notebooks/eras_tour_analysis.ip
 
 ## Status
 
-Artist discovery, interactive source ingestion, the Project 003 dbt master model, and the paired analysis notebook are implemented. The first pass of scale-oriented visualizations exists, but the notebook now needs chart-by-chart refinement before publication.
+Artist discovery, interactive source ingestion, the Project 003 dbt master model, and the paired analysis notebook are implemented. The first pass of scale-oriented visualizations exists, and the notebook is now in chart-by-chart refinement before publication.
+
+Recent visualization work:
+
+- Updated `001 Shows-Per-Month` to use `stageGreen` bars.
+- Added month-bucketed album release markers to `001 Shows-Per-Month` using `album_release_date` from the existing Project 003 master dataframe.
+- Reworked `002 Venue-Geography` from a bare longitude/latitude scatter into a Plotnine + GeoPandas world map with a Natural Earth land underlay.
+- Added country-coded venue dots, venue-size scaling by `total_shows`, and a separate `002 Venue-Geography-Legend` export for Canva placement experiments.
+- Added GeoPandas map dependencies to the environment: `geopandas`, `geodatasets`, `pyogrio`, `pyproj`, `shapely`, and `pooch`.
 
 Next work:
 
-- Refine the analysis notebook one visualization at a time, starting with the Part One scale charts.
+- Continue reviewing the remaining charts one visualization at a time:
+  - `003 Taylor-Tour-Comparison`
+  - `004 Album-Representation`
+  - any follow-up charts needed for surprise songs, vault tracks, and era/album representation over time
 - Continue polishing chart code without embedded titles/subtitles; those are handled downstream in Canva.
-- Revisit the venue geography visualization and investigate whether Plotnine can underlay a real world map beneath the venue points, or whether this chart needs a different mapping utility while preserving the repo's visual workflow.
+- Decide whether the separate geography legend export is useful enough to keep as a pattern.
 - Keep using `inv notebook-sync` between notebook and `.py` edits, with lightweight Python validation unless notebook execution is explicitly needed.
+
+Potential `setkit` enhancements discovered during this pass:
+
+- A small legend-generator helper for standalone Canva-friendly legend exports.
+- A reusable map helper that loads a quiet Natural Earth underlay and applies Gaffer styling.
+- Shared chart-export conventions for paired main-chart and legend-chart assets.
+- A notebook/project context helper that exposes `repo_root`, `project_dir`, `figures_dir`, and `exports_dir` explicitly, if path setup keeps creating friction.
 
 ## Artist Discovery
 

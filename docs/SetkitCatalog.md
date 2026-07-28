@@ -412,13 +412,13 @@ Use them when:
 - You want to add the repository root to `sys.path`.
 - You want standard logging setup.
 - You want pandas display options configured.
-- You want a small context object with `project_root` and `project_name`.
+- You want a small context object with the repository root and `project_name`.
 
 What you need prepared:
 
 | Helper | Required input | Notes |
 | --- | --- | --- |
-| `notebook.find_project_root(start=...)` | A path inside the repo, or nothing to use the current working directory | Looks upward for markers like `AGENTS.md`, `README.md`, or `.git`. |
+| `notebook.find_project_root(start=...)` | A path inside the repo, or nothing to use the current working directory | Looks upward for repository markers like `.agents` or `.git`. |
 | `notebook.add_project_root(...)` | Optional root or start path | Adds the repo root to `sys.path` once. |
 | `notebook.configure_logging(...)` | Optional log level | Calls Python logging setup. |
 | `notebook.configure_pandas(...)` | Optional display limits | Sets pandas display options. |

@@ -11,7 +11,7 @@ from typing import Iterable
 import pandas as pd
 
 
-DEFAULT_MARKERS = ("AGENTS.md", "README.md", ".git")
+DEFAULT_MARKERS = (".agents", ".git")
 
 
 @dataclass(frozen=True)
@@ -44,7 +44,7 @@ def add_project_root(
     start: str | Path | None = None,
     prepend: bool = True,
 ) -> Path:
-    """Add the project root to ``sys.path`` and return it."""
+    """Add the repository root to ``sys.path`` and return it."""
     root = Path(project_root).resolve() if project_root is not None else find_project_root(start=start)
     root_string = str(root)
 

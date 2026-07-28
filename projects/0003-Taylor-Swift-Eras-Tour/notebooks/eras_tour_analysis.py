@@ -8,7 +8,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.4
 #   kernelspec:
-#     display_name: .venv (3.13.2)
+#     display_name: .venv (3.13.2.final.0)
 #     language: python
 #     name: python3
 # ---
@@ -23,12 +23,18 @@
 # ## Setup
 
 # %%
+import geopandas as gpd
 import pandas as pd
+from geodatasets import get_path
 from plotnine import (
     aes,
+    coord_fixed,
     geom_col,
     geom_line,
+    geom_map,
     geom_point,
+    geom_text,
+    geom_vline,
     ggplot,
     labs,
     scale_color_manual,
@@ -37,7 +43,8 @@ from plotnine import (
     scale_x_date,
     theme,
     element_text,
-    element_blank
+    element_blank,
+    theme_void,
 )
 
 from loadin.postgres import run_query
@@ -46,7 +53,8 @@ from setkit import export, gaffer, notebook
 
 PROJECT_NAME = "Taylor-Swift-Eras-Tour"
 ctx = notebook.setup(project_name=PROJECT_NAME)
-PROJECT_DIR = ctx.project_root / "projects" / "0003-Taylor-Swift-Eras-Tour"
+REPO_ROOT = ctx.project_root
+PROJECT_DIR = REPO_ROOT / "projects" / "0003-Taylor-Swift-Eras-Tour"
 FIGURES_DIR = PROJECT_DIR / "figures"
 MASTER_TABLE = "analytics_project.project_003_eras_tour_master_setlist_data"
 
@@ -70,6 +78,7 @@ from
 
 df = run_query(master_query)
 df["event_date"] = pd.to_datetime(df["event_date"])
+df["album_release_date"] = pd.to_datetime(df["album_release_date"])
 
 df.shape
 
@@ -132,9 +141,48 @@ monthly_show_summary = (
     )
 )
 
+album_release_annotations = (
+    df.loc[
+        df["album_release_date"].between(
+            show_summary["event_date"].min(),
+            show_summary["event_date"].max(),
+        )
+        & df["album_name"].notna()
+        & df["album_name"].ne("THE TORTURED POETS DEPARTMENT: THE ANTHOLOGY")
+        & df["album_type"].eq("album"),
+        ["album_name", "album_release_date"],
+    ]
+    .assign(album_release_month=lambda frame: frame["album_release_date"].dt.to_period("M").dt.to_timestamp())
+    .drop_duplicates()
+    .sort_values(["album_release_month", "album_release_date", "album_name"])
+    .groupby("album_release_month", as_index=False)
+    .agg(album_label=("album_name", " / ".join))
+    .assign(label_y=monthly_show_summary["total_shows"].max() + 1)
+)
+
 monthly_timeline_plot = (
     ggplot(monthly_show_summary, aes("month_start", "total_shows"))
-    + geom_col(fill=gaffer.COLORS["setlistBlue"], width=24)
+    + geom_col(fill=gaffer.COLORS["stageGreen"], width=24)
+    + geom_vline(
+        data=album_release_annotations,
+        mapping=aes(xintercept="album_release_month"),
+        color=gaffer.COLORS["backstageBlack"],
+        linetype="dotted",
+        alpha=0.45,
+        size=0.8,
+    )
+    + geom_text(
+        data=album_release_annotations,
+        mapping=aes("album_release_month", "label_y", label="album_label"),
+        color=gaffer.COLORS["backstageBlack"],
+        size=8,
+        angle=90,
+        ha="left",
+        va="center",
+        alpha=0.75,
+        nudge_x=4,
+        nudge_y=-2.6,
+    )
     + scale_x_date(date_breaks="2 month", date_labels="%b-%y")
     + labs(
         x=None,
@@ -168,6 +216,8 @@ export.chart(
 # become a proper world map later if the story needs geographic polish.
 
 # %%
+world = gpd.read_file(get_path("naturalearth.land"))
+
 venue_geo = (
     df.dropna(subset=["venue_latitude", "venue_longitude"])
     .groupby(
@@ -192,18 +242,45 @@ venue_geo = (
 venue_geo.head()
 
 # %%
+country_palette = [
+    gaffer.COLORS["stageGreen"],
+    gaffer.COLORS["setlistBlue"],
+    gaffer.COLORS["ampOrange"],
+    gaffer.COLORS["floodPink"],
+    gaffer.COLORS["encorePurple"],
+    gaffer.COLORS["clockYellow"],
+    gaffer.COLORS["lightBlue"],
+]
+venue_country_colors = {
+    country_code: country_palette[index % len(country_palette)]
+    for index, country_code in enumerate(sorted(venue_geo["venue_country_code"].dropna().unique()))
+}
+
 venue_map_plot = (
-    ggplot(
-        venue_geo,
-        aes(
+    ggplot()
+    + geom_map(
+        data=world,
+        fill=gaffer.COLORS["spotlightCream"],
+        color=gaffer.COLORS["gafferGrey"],
+        size=0.25,
+    )
+    + geom_point(
+        data=venue_geo,
+        mapping=aes(
             x="venue_longitude",
             y="venue_latitude",
             size="total_shows",
-            color="venue_country_code",
+            fill="venue_country_code",
         ),
+        color=gaffer.COLORS["backstageBlack"],
+        shape="o",
+        stroke=0.7,
+        alpha=0.7,
+        show_legend=False,
     )
-    + geom_point(alpha=0.78)
-    + scale_size(range=(2, 12))
+    + coord_fixed(ratio=1)
+    + scale_fill_manual(values=venue_country_colors)
+    + scale_size(range=(3, 12))
     + labs(
         x="Longitude",
         y="Latitude",
@@ -211,7 +288,8 @@ venue_map_plot = (
     + gaffer.source_caption()
     + gaffer.theme(fig_width=16, fig_height=9, panel_grid="both")
     + theme(
-        # axis_title_y=element_text(size=9)
+        axis_title_y=element_blank()
+        , axis_title_x=element_blank()
     )
 )
 
@@ -226,6 +304,100 @@ export.chart(
     out_dir=FIGURES_DIR,
     width=16,
     height=9,
+)
+
+# %%
+country_legend = pd.DataFrame(
+    {
+        "venue_country_code": sorted(venue_country_colors),
+    }
+).assign(
+    x=lambda frame: frame.index % 7,
+    y=lambda frame: 2 - (frame.index // 7),
+)
+
+show_size_legend = pd.DataFrame(
+    {
+        "total_shows": sorted({1, int(venue_geo["total_shows"].max())}),
+    }
+).assign(
+    x=lambda frame: frame.index * 1.25 + 1.3,
+    y=-0.8,
+)
+
+show_size_legend_title = pd.DataFrame(
+    {
+        "x": [0],
+        "y": [-.8],
+        "label": ["Shows at venue"],
+    }
+)
+
+venue_map_legend_plot = (
+    ggplot()
+    + geom_point(
+        data=country_legend,
+        mapping=aes("x", "y", fill="venue_country_code"),
+        color=gaffer.COLORS["gafferGrey"],
+        shape="o",
+        size=7,
+        stroke=0.7,
+        alpha=0.92,
+        show_legend=False,
+    )
+    + geom_text(
+        data=country_legend,
+        mapping=aes("x", "y", label="venue_country_code"),
+        nudge_x=0.2,
+        ha="left",
+        va="center",
+        size=9,
+        color=gaffer.COLORS["backstageBlack"],
+    )
+    + geom_text(
+        data=show_size_legend_title,
+        mapping=aes("x", "y", label="label"),
+        ha="left",
+        va="center",
+        size=9,
+        color=gaffer.COLORS["backstageBlack"],
+    )
+    + geom_point(
+        data=show_size_legend,
+        mapping=aes("x", "y", size="total_shows"),
+        fill=gaffer.COLORS["stageGreen"],
+        color=gaffer.COLORS["gafferGrey"],
+        shape="o",
+        stroke=0.7,
+        alpha=0.92,
+        show_legend=False,
+    )
+    + geom_text(
+        data=show_size_legend,
+        mapping=aes("x", "y", label="total_shows"),
+        nudge_x=0.28,
+        ha="left",
+        va="center",
+        size=9,
+        color=gaffer.COLORS["backstageBlack"],
+    )
+    + scale_fill_manual(values=venue_country_colors)
+    + scale_size(range=(3, 12))
+    + theme_void()
+    + theme(figure_size=(6, 4))
+)
+
+venue_map_legend_plot
+
+# %%
+export.chart(
+    venue_map_legend_plot,
+    project_name=PROJECT_NAME,
+    chart_number="002",
+    viz_name="Venue-Geography-Legend",
+    out_dir=FIGURES_DIR,
+    width=10,
+    height=3.5,
 )
 
 # %% [markdown]

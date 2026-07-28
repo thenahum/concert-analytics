@@ -11,7 +11,17 @@ def test_find_project_root_walks_up_to_marker(tmp_path):
     root = tmp_path / "repo"
     nested = root / "projects" / "0001"
     nested.mkdir(parents=True)
-    (root / "AGENTS.md").write_text("# agents\n")
+    (root / ".agents").mkdir()
+
+    assert notebook.find_project_root(start=nested) == root
+
+
+def test_find_project_root_ignores_nested_project_readme(tmp_path):
+    root = tmp_path / "repo"
+    nested = root / "projects" / "0001" / "notebooks"
+    nested.mkdir(parents=True)
+    (root / ".agents").mkdir()
+    (root / "projects" / "0001" / "README.md").write_text("# project\n")
 
     assert notebook.find_project_root(start=nested) == root
 
