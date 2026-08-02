@@ -8,7 +8,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.4
 #   kernelspec:
-#     display_name: .venv (3.13.2.final.0)
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---
@@ -29,10 +29,12 @@ from geodatasets import get_path
 from plotnine import (
     aes,
     coord_fixed,
+    facet_grid,
     geom_col,
     geom_line,
     geom_map,
     geom_point,
+    geom_rect,
     geom_text,
     geom_vline,
     ggplot,
@@ -41,6 +43,8 @@ from plotnine import (
     scale_fill_manual,
     scale_size,
     scale_x_date,
+    scale_x_continuous,
+    scale_y_continuous,
     theme,
     element_text,
     element_blank,
@@ -401,7 +405,7 @@ export.chart(
 )
 
 # %% [markdown]
-# ## 003. Taylor Tour Comparison
+# ### 003. Taylor Tour Comparison
 #
 # This uses `mart_setlist_history` directly so the comparison can include prior
 # Taylor Swift tours without changing Project 003's master model.
@@ -435,42 +439,92 @@ tour_comparison["last_show"] = pd.to_datetime(tour_comparison["last_show"])
 tour_comparison.head(12)
 
 # %%
-tour_colors = {
-    "The Eras Tour": gaffer.COLORS["spotRed"],
-    "Other Taylor tours": gaffer.COLORS["setlistBlue"],
+tour_metric_colors = {
+    "Eras Tour · Shows": gaffer.COLORS["stageGreen"],
+    "Eras Tour · Songs per show": gaffer.COLORS["ampOrange"],
+    "Other tours · Shows": gaffer.COLORS["gafferGrey"],
+    "Other tours · Songs per show": gaffer.COLORS["gafferGrey"],
 }
 
 tour_comparison = tour_comparison.assign(
-    tour_group=lambda frame: frame["event_tour"].where(
-        frame["event_tour"].str.contains("Eras Tour", case=False, na=False),
-        "Other Taylor tours",
+    is_eras_tour=lambda frame: frame["event_tour"].str.contains(
+        "Eras Tour", case=False, na=False
+    ),
+    average_songs_per_show=lambda frame: (
+        frame["total_song_performances"] / frame["total_shows"]
+    ),
+)
+
+tour_order = (
+    tour_comparison.sort_values("total_shows", ascending=True)["event_tour"]
+    .drop_duplicates()
+    .tolist()
+)
+
+tour_comparison_bars = (
+    tour_comparison[
+        ["event_tour", "is_eras_tour", "total_shows", "average_songs_per_show"]
+    ]
+    .melt(
+        id_vars=["event_tour", "is_eras_tour"],
+        value_vars=["total_shows", "average_songs_per_show"],
+        var_name="metric_key",
+        value_name="value",
+    )
+    .assign(
+        event_tour=lambda frame: pd.Categorical(
+            frame["event_tour"], categories=tour_order, ordered=True
+        ),
+        tour_position=lambda frame: frame["event_tour"].cat.codes,
+        metric=lambda frame: pd.Categorical(
+            frame["metric_key"].map(
+                {
+                    "total_shows": "Total shows",
+                    "average_songs_per_show": "Average songs per show",
+                }
+            ),
+            categories=["Total shows", "Average songs per show"],
+            ordered=True,
+        ),
+        plot_value=lambda frame: frame["value"],
+        fill_group=lambda frame: (
+            frame["is_eras_tour"].map({True: "Eras Tour", False: "Other tours"})
+            + " · "
+            + frame["metric_key"].map(
+                {
+                    "total_shows": "Shows",
+                    "average_songs_per_show": "Songs per show",
+                }
+            )
+        ),
     )
 )
 
 tour_comparison_plot = (
     ggplot(
-        tour_comparison,
+        tour_comparison_bars,
         aes(
-            x="total_shows",
-            y="total_song_performances",
-            color="tour_group",
-            size="unique_songs",
+            xmin="plot_value",
+            xmax=0,
+            ymin="tour_position - 0.36",
+            ymax="tour_position + 0.36",
+            fill="fill_group",
         ),
     )
-    + geom_point(alpha=0.82)
-    + scale_color_manual(values=tour_colors)
-    + scale_size(range=(3, 13))
+    + geom_rect(show_legend=False)
+    + facet_grid(cols="metric", scales="free_x", space="free_x")
+    + scale_fill_manual(values=tour_metric_colors)
+    + scale_x_continuous(labels=lambda breaks: [f"{abs(value):g}" for value in breaks])
+    + scale_y_continuous(breaks=range(len(tour_order)), labels=tour_order)
     + labs(
-        x="Tracked shows",
-        y="Song performances",
-        title="The Eras Tour Compared With Taylor Swift's Other Tours",
-        subtitle="Tours with at least five tracked setlist.fm shows.",
+        x=None,
+        y=None,
     )
     + gaffer.source_caption()
-    + gaffer.theme(fig_width=12, fig_height=9, panel_grid="both")
+    + gaffer.theme(fig_width=12, fig_height=9, panel_grid="x")
+    + gaffer.facets()
     + theme(
-        plot_title=element_text(size=16, weight="bold", color=gaffer.COLORS["backstageBlack"]),
-        plot_subtitle=element_text(size=10, color=gaffer.COLORS["gafferGrey"]),
+        axis_text_y=element_text(color=gaffer.COLORS["backstageBlack"]),
     )
 )
 
