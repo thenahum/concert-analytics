@@ -552,17 +552,17 @@ export.chart(
 
 # %%
 album_order = [
-    "Taylor Swift",
-    "Fearless",
-    "Speak Now",
-    "Red",
-    "1989",
-    "reputation",
-    "Lover",
-    "folklore",
-    "evermore",
-    "Midnights",
     "THE TORTURED POETS DEPARTMENT",
+    "Midnights",
+    "evermore",
+    "folklore",
+    "Lover",
+    "reputation",
+    "1989",
+    "Red",
+    "Speak Now",
+    "Fearless",
+    "Taylor Swift",
     "Other / unmatched",
 ]
 
