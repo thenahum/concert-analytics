@@ -10,4 +10,23 @@ models:
     description: "Master Eras Tour setlist and track data for project 003 Taylor Swift Eras Tour"
     config:
       tags: ["project_003"]
+    columns:
+      - name: album_family
+        description: "Canonical Taylor Swift album era for the selected Spotify album, or Other / unmatched."
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - "Taylor Swift"
+                - "Fearless"
+                - "Speak Now"
+                - "Red"
+                - "1989"
+                - "reputation"
+                - "Lover"
+                - "folklore"
+                - "evermore"
+                - "Midnights"
+                - "THE TORTURED POETS DEPARTMENT"
+                - "Other / unmatched"
     

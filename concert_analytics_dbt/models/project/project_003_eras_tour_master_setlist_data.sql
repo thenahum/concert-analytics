@@ -218,6 +218,21 @@ select
     , tr.album_uri
     , tr.album_type
     , tr.album_name
+    , case
+        when lower(tr.album_name) ~ '^taylor swift(?:$|[ (:-])' then 'Taylor Swift'
+        when lower(tr.album_name) ~ '^fearless(?:$|[ (:-])' then 'Fearless'
+        when lower(tr.album_name) ~ '^speak now(?:$|[ (:-])' then 'Speak Now'
+        when lower(tr.album_name) ~ '^red(?:$|[ (:-])' then 'Red'
+        when lower(tr.album_name) ~ '^1989(?:$|[ (:-])' then '1989'
+        when lower(tr.album_name) ~ '^reputation(?:$|[ (:-])' then 'reputation'
+        when lower(tr.album_name) ~ '^lover(?:$|[ (:-])' then 'Lover'
+        when lower(tr.album_name) ~ '^folklore(?:$|[ (:-])' then 'folklore'
+        when lower(tr.album_name) ~ '^evermore(?:$|[ (:-])' then 'evermore'
+        when lower(tr.album_name) ~ '^midnights(?:$|[ (:-])' then 'Midnights'
+        when lower(tr.album_name) ~ '^the tortured poets department(?:$|[ (:-])'
+            then 'THE TORTURED POETS DEPARTMENT'
+        else 'Other / unmatched'
+    end as album_family
     , tr.album_total_tracks
     , tr.album_release_date
     , tr.album_image_url

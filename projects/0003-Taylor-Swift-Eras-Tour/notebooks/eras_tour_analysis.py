@@ -29,6 +29,7 @@ from geodatasets import get_path
 from plotnine import (
     aes,
     coord_fixed,
+    coord_flip,
     facet_grid,
     geom_col,
     geom_line,
@@ -38,6 +39,8 @@ from plotnine import (
     geom_text,
     geom_vline,
     ggplot,
+    guide_legend,
+    guides,
     labs,
     scale_color_manual,
     scale_fill_manual,
@@ -542,7 +545,7 @@ export.chart(
 )
 
 # %% [markdown]
-# ## 004. Album Representation
+# ### 004. Album Representation
 #
 # Count song performances by selected Spotify album match. Covers and unmatched
 # songs are kept visible so the chart reveals matching gaps.
@@ -564,37 +567,26 @@ album_order = [
 ]
 
 album_colors = {
-    "Taylor Swift": "#6FAF75",
-    "Fearless": "#D9B650",
-    "Speak Now": "#8F6AAE",
-    "Red": "#C8463A",
-    "1989": "#4B9FD3",
-    "reputation": "#4A4A4A",
-    "Lover": "#E78AB5",
-    "folklore": "#8F8F86",
-    "evermore": "#A66A43",
-    "Midnights": "#2D416C",
-    "THE TORTURED POETS DEPARTMENT": "#C9B8A6",
+    "Taylor Swift": gaffer.COLORS["stageGreen"],
+    "Fearless": gaffer.COLORS["clockYellow"],
+    "Speak Now": gaffer.COLORS["encorePurple"],
+    "Red": gaffer.COLORS["spotRed"],
+    "1989": gaffer.COLORS["setlistBlue"],
+    "reputation": gaffer.COLORS["backstageBlack"],
+    "Lover": gaffer.COLORS["floodPink"],
+    "folklore": gaffer.COLORS["gafferGrey"],
+    "evermore": gaffer.COLORS["ampOrange"],
+    "Midnights": gaffer.COLORS["lightBlue"],
+    "THE TORTURED POETS DEPARTMENT": gaffer.COLORS["lightAmpOrange"],
     "Other / unmatched": gaffer.COLORS["gafferGrey"],
 }
 
 
-def album_family(album_name: str | None) -> str:
-    if pd.isna(album_name) or not album_name:
-        return "Other / unmatched"
-    normalized = album_name.casefold()
-    for album in album_order:
-        if album != "Other / unmatched" and album.casefold() in normalized:
-            return album
-    return "Other / unmatched"
-
-
 album_summary = (
-    df.assign(album_family=lambda frame: frame["album_name"].map(album_family))
-    .groupby("album_family", dropna=False)
+    df.groupby("album_family", dropna=False)
     .agg(
         song_performances=("event_set_song_id", "count"),
-        unique_songs=("song_name", "nunique"),
+        unique_songs=("track_song_name", "nunique"),
     )
     .reset_index()
 )
@@ -609,22 +601,81 @@ album_summary = album_summary.sort_values("album_family")
 album_summary
 
 # %%
+album_metric_order = ["Performances", "Unique songs"]
+
+album_chart_data = (
+    album_summary.melt(
+        id_vars="album_family",
+        value_vars=["unique_songs", "song_performances"],
+        var_name="metric_key",
+        value_name="count",
+    )
+    .assign(
+        metric=lambda frame: pd.Categorical(
+            frame["metric_key"].map(
+                {
+                    "unique_songs": "Unique songs",
+                    "song_performances": "Performances",
+                }
+            ),
+            categories=album_metric_order,
+            ordered=True,
+        ),
+        share=lambda frame: frame["count"]
+        / frame.groupby("metric", observed=True)["count"].transform("sum"),
+    )
+)
+
+album_totals = (
+    album_chart_data.groupby("metric", observed=True, as_index=False)["count"]
+    .sum()
+    .assign(
+        total_label=lambda frame: frame.apply(
+            lambda row: (
+                f"{int(row['count']):,} unique songs"
+                if row["metric"] == "Unique songs"
+                else f"{int(row['count']):,} performances"
+            ),
+            axis=1,
+        )
+    )
+)
+
+album_chart_data
+
+# %%
 album_plot = (
-    ggplot(album_summary, aes("album_family", "song_performances", fill="album_family"))
-    + geom_col(show_legend=False)
+    ggplot(album_chart_data, aes("metric", "share", fill="album_family"))
+    + geom_col(width=0.62)
+    + geom_text(
+        data=album_totals,
+        mapping=aes(x="metric", y=1.02, label="total_label"),
+        inherit_aes=False,
+        ha="left",
+        size=9,
+        family=gaffer.FONTS["axis"],
+        color=gaffer.COLORS["backstageBlack"],
+    )
     + scale_fill_manual(values=album_colors)
+    + scale_y_continuous(
+        breaks=[0, 0.25, 0.5, 0.75, 1],
+        labels=lambda breaks: [f"{value:.0%}" for value in breaks],
+        limits=(0, 1.16),
+        expand=(0, 0),
+    )
+    + coord_flip()
+    + guides(fill=guide_legend(nrow=2))
     + labs(
         x=None,
-        y="Song performances",
-        title="Which Albums Got The Most Love?",
-        subtitle="Counts include repeat performances across all tracked Eras Tour shows.",
+        y="Share of total",
+        fill=None,
     )
-    + gaffer.source_caption(additional_sources=["Spotify"])
-    + gaffer.theme(fig_width=12, fig_height=9, panel_grid="y")
+    + gaffer.source_caption(additional_sources=["Spotify API"])
+    + gaffer.theme(fig_width=12, fig_height=6, panel_grid="x")
     + theme(
-        plot_title=element_text(size=16, weight="bold", color=gaffer.COLORS["backstageBlack"]),
-        plot_subtitle=element_text(size=10, color=gaffer.COLORS["gafferGrey"]),
-        axis_text_x=element_text(rotation=35, ha="right"),
+        axis_text_y=element_text(color=gaffer.COLORS["backstageBlack"]),
+        legend_position="bottom",
+        legend_direction="horizontal",
     )
 )
 
@@ -638,5 +689,5 @@ export.chart(
     viz_name="Album-Representation",
     out_dir=FIGURES_DIR,
     width=12,
-    height=9,
+    height=6,
 )
